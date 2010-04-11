@@ -97,13 +97,13 @@ String term1() :
 String term2() :
 {Token  t;String str1="";String str2="";}
 {
-  str2=unary()
+  str2=term3()
   (
     (
       t=< MULTIPLY >
     | t=< DIVIDE >
     )
-    str1=unary()
+    str1=term3()
     {
       str2+=str1+t.image+" ";
     }
@@ -113,11 +113,20 @@ String term2() :
   }
 }
 
-String unary() :
-{Token t; String str="";}
+String term3() :
+{String str1="";String str2="";}
 {
-  (t=< MINUS > str=element()) {return t.image+str;}
-| str=element(){return str;}
+  str2=element()
+  (
+    <EXP>
+    str1=term3()
+    {
+      str2+=str1+t.image+" ";
+    }
+  )?
+  {
+    return str2;
+  }
 }
 
 String element() :
