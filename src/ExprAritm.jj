@@ -1,0 +1,104 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(ExprEval)import java.io.*; 
+public class ExprEval{  public static void main(String args []) throws ParseException  {    //ExprEval parser = new ExprEval(System.in);
+    try    {      ExprEval parser = new ExprEval(new FileInputStream("prog_fonte.my"));
+      //System.out.println("Arithmetic Expressions Evaluator");
+    		  while (true)
+      {
+      
+        //System.out.print("Enter an expression like \"1+(2+3)*4;\" :");
+        try
+        {
+          int valor=0;
+          valor=ExprEval.one_line();
+          if(0==valor) break;
+          System.out.println(valor);
+        }
+        catch (Exception e)
+        {
+          System.out.println("NOK.");
+          System.out.println(e.getMessage());
+          eg1.ReInit(System.in);
+        }
+        catch (Error e)
+        {
+          System.out.println("Oops.");
+          System.out.println(e.getMessage());
+          break;
+        }
+      }
+    }
+    catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+    }   }}PARSER_END(ExprEval)SKIP :
+{
+  " "
+| "\r"
+| "\t"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < PLUS : "+" >
+| < MINUS : "-" >
+| < MULTIPLY : "*" >
+| < DIVIDE : "/" >
+}
+
+TOKEN :
+{
+  < CONSTANT : (< DIGIT >)+ >
+| < #DIGIT : [ "0"-"9" ] >
+} 
+
+int one_line() :{int val=0;}
+{
+  <EOF> { return 0;}
+| 
+  val=sum() "\n" { return val;}
+| "\n" { return 0;}
+}
+
+int sum() :{int val=0;int val1=0;}
+{
+  val=term()
+  (
+      < PLUS > val1=term(){  val=val+val1;}
+    | < MINUS > val1=term(){  val=val-val1;}
+  )*
+  {
+    return val;
+  }
+}
+
+int term() :
+{int val=1;int val1=1;}
+{
+  val=unary()
+  (
+      < MULTIPLY > val1=unary() {  val=val1*val;}
+    |
+      < DIVIDE > val1=unary() {  val=val/val1;}
+  )*
+  {
+    return val;
+  }
+}
+
+int unary() :
+{ int val=0;}
+{
+  (< MINUS > val=element()) {return -val;}
+| 
+  (< PLUS > val=element()) {return val;}
+|
+  val=element(){return val;}
+}
+
+int element() :
+{Token t;int val=0;} 
+{
+  t=< CONSTANT >{return Integer.parseInt(t.image);}
+| "(" val=sum() ")"  {return val;}
+}

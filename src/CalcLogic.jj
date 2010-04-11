@@ -1,0 +1,105 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(CalcLogic)
+import java.io.*; 
+public class CalcLogic
+{
+  public static void main(String args []) throws ParseException
+  {
+    /* ExprEval parser = new ExprEval(System.in);
+    System.out.println("Calculadora Lógica");
+    System.out.println("Operadores lógicos: \"+\" (ou) e \".\"(e) ");
+    System.out.println("Valores lógicos V:1, V, v, VERDADEIRO ou verdadeiro ");
+    System.out.println("Valores lógicos F:0, F, f, FALSO, falso "); */
+    try
+    {
+      CalcLogic parser = new CalcLogic(new FileInputStream("prog_fonte.my"));
+    		  while (true)
+      {
+        //System.out.print("#: ");
+        try
+        {
+          String valor="";
+          valor=CalcLogic.one_line();
+          if(""==valor) break;
+          System.out.println("=> "+valor);
+        }
+        catch (Exception e)
+        {
+          System.out.println("NOK.");
+          System.out.println(e.getMessage());
+          eg1.ReInit(System.in);
+        }
+        catch (Error e)
+        {
+          System.out.println("Oops.");
+          System.out.println(e.getMessage());
+          break;
+        }
+      }
+    }
+    catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+    } 
+  }
+}
+
+PARSER_END(CalcLogic)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+}
+
+TOKEN : /* OPERATORS */
+{
+  < OR : "+" >
+| < AND : "." >
+}
+
+TOKEN :
+{
+  < FALSO : "0"|"falso"|"FALSO"|"f"|"F" >
+| < VERDADEIRO : "1"|"verdadeiro"|"VERDADEIRO"|"v"|"V" >
+} 
+
+String one_line() :{int val=0;}
+{
+  <EOF> { return "";}
+| 
+  val=sum() "\n" { if(0==val) return "0"; else return "1"; }
+| "\n" { return "";}
+}
+
+int sum() :{int val=0;int val1=0;}
+{
+  val=term()
+  (
+      < OR > val1=term(){  val=val+val1;}
+  )*
+  {
+    return val;
+  }
+}
+
+int term() :
+{int val=1;int val1=1;}
+{
+  val=element()
+  (
+      <AND> val1=element() {  val=val1*val;}
+  )*
+  {
+    return val;
+  }
+}
+
+int element() :
+{Token t;int val=0;}
+{
+  t=< FALSO >{return 0;}
+| t=<VERDADEIRO >{return 1;}
+| "(" val=sum() ")"  {return val;}
+}

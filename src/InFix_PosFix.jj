@@ -1,0 +1,13 @@
+options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(InFixPosFix)
+public class InFixPosFix{  public static void main(String args []) throws ParseException  {    InFixPosFix parser = new InFixPosFix(System.in);    System.out.println("Transformação de expressão infixa para pós-fixa");    while (true)    {            System.out.print("Entre uma expressão infixa tipo \"1+(2+3)*4;\" :");      try      {
+        String teste=InFixPosFix.one_line();
+        if(""==teste) break;        System.out.println(teste);      }      catch (Exception e)      {        System.out.println("NOK.");        System.out.println(e.getMessage());        eg1.ReInit(System.in);      }      catch (Error e)      {        System.out.println("Oops.");        System.out.println(e.getMessage());        break;      }    }  }}PARSER_END(InFixPosFix)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN : /* OPERATORS */{  < PLUS : "+" >| < MINUS : "-" >| < MULTIPLY : "*" >| < DIVIDE : "/" >}TOKEN :{  < CONSTANT : (< DIGIT >)+ >| < #DIGIT : [ "0"-"9" ] >}String one_line() :{String str="";}{  str=sum() ";"  {    return str;  }| ";"  {    return "";  }}String sum() :{Token  t;String str1="";String str2="";}{  str2=term()  (    (      t=< PLUS >    | t=< MINUS >    )    str1=term()
+    {
+      str2+=str1+t.image+" " ;
+    }  )*
+  {
+    return str2;
+  }}String term() :{Token  t;String str1="";String str2="";}{  str2=unary()  (    (      t=< MULTIPLY >    | t=< DIVIDE >    )    str1=unary()    {
+      str2+=str1+t.image+" ";    }  )*
+  {
+    return str2;  }}String unary() :{Token t; String str="";}{  (t=< MINUS > str=element()) {return t.image+str;}| str=element(){return str;}}String element() :{Token t;String str="";}{  t=< CONSTANT >{return t.image+" ";}| "(" str=sum() ")"  {return str;}}
