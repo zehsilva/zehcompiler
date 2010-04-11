@@ -72,7 +72,7 @@ String one_line() :
 }
 String sum() :{String str1="";String str2="";}
 {
-  str2=term1() (< MOD > str1=term1())*
+  str2=term1() (< MOD > str1=term1()  {str2+=str1+" mod ";}    )*		  {return str2;}
 }
 
 String term1() :
@@ -121,7 +121,7 @@ String term3() :
     <EXP>
     str1=term3()
     {
-      str2+=str1+t.image+" ";
+      str2+=str1+"^ ";
     }
   )?
   {
