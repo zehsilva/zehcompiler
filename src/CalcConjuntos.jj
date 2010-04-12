@@ -10,7 +10,27 @@ TOKEN : /* COMMANDS */
   < ATRIB : "=" >
 }TOKEN :{
   < ABRECH: "{" >
-| < FECHACH: "}" >| < CONSTANT : (< DIGIT >)+ >
+| < FECHACH: "}" >
+| < ABREPAR: "(" >
+| < FECHAPAR: ")" >
+| < PNT_VIRG: ";" >
+| < VIRG : "," >| < NUMERIC: (< DIGIT >)+ >
 | < VAR : "_"(< LETTERS >)+ >
-| < STRING : (< LETTERS >)+ >| < #DIGIT : [ "0"-"9" ] >
-| < #LETTERS: ["a"-"z"]|["A"-"Z"] >}int one_line() :{}{ ";"  {    return 1;  }}
+| < STRING : (~[])+ >| < #DIGIT : [ "0"-"9" ] >
+| < #LETTERS: ["a"-"z"]|["A"-"Z"] >}int one_line() :{}{  <PNT_VIRG >   {    return 1;  }}
+
+Conjunto expr_union():{}
+{
+  < VAR >(< UNION > expr_inters())*
+}
+Conjunto expr_inters():{}
+{
+   <VAR >(< INTERSECT >  )*}
+Conjunto termo_expr():{}
+{  (<VAR >| <ABREPAR> expr_union() <FECHAPAR>)
+}boolean expr_bool():{}
+{
+  constante() (< CONTIDO >|< PERTENCE >) expr_union()}
+String constante():{Token t;}
+{
+  t=<STRING>|t= < NUMERIC >}
