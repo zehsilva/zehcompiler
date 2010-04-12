@@ -5,6 +5,10 @@ public class Conjunto {
 	{
 		s=new TreeSet<String>();
 	}
+	Conjunto(Collection<String> c)
+	{
+		s=new TreeSet<String>(c);
+	}
 	Conjunto(String[] arrstr)
 	{
 		s=new TreeSet<String>();
@@ -16,6 +20,13 @@ public class Conjunto {
 	TreeSet<String> getTreeSetX()
 	{
 		return new TreeSet<String>(s);
+	}
+	
+	Conjunto Union(Conjunto c2)
+	{
+		Conjunto r=new Conjunto(s);
+		r.s.addAll(c2.s);
+		return r;
 	}
 	
 	public String toString()
