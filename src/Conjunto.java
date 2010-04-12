@@ -1,6 +1,6 @@
 import java.util.*;
 public class Conjunto {
-	Set<String> s;
+	public Set<String> s;
 	Conjunto()
 	{
 		s=new TreeSet<String>();
@@ -21,14 +21,46 @@ public class Conjunto {
 	{
 		return new TreeSet<String>(s);
 	}
-	
-	Conjunto Union(Conjunto c2)
+	public void add(String str)
+	{
+		s.add(str);
+	}
+	public void addAll(Collection<String> c)
+	{
+		s.addAll(c);
+	}
+	public void addAll(Conjunto c)
+	{
+		s.addAll(c.s);
+	}
+	public boolean contains(String str)
+	//testa se o elemento str pertence ao conjunto atual
+	{
+		return s.contains(str);
+	}
+	public boolean containsAll(Conjunto c2)
+	//testa se o conjunto atual contem um subconjunto c2
+	{
+		return s.containsAll(c2.s);
+	}
+	public Conjunto Union(Conjunto c2)
 	{
 		Conjunto r=new Conjunto(s);
-		r.s.addAll(c2.s);
+		r.addAll(c2);
 		return r;
 	}
-	
+	public Conjunto Intersect(Conjunto c2)
+	{
+		Conjunto res=new Conjunto();
+		for(String e: this.s)
+		{
+			if(c2.contains(e))
+			{
+				res.add(e);
+			}
+		}
+		return res;
+	}
 	public String toString()
 	{
 		String str="{";
