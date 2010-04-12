@@ -17,6 +17,11 @@ public class Conjunto {
 			s.add(e);
 		}
 	}
+	Conjunto(String str)
+	{
+		s=new TreeSet<String>();
+		s.add(str);
+	}
 	TreeSet<String> getTreeSetX()
 	{
 		return new TreeSet<String>(s);
