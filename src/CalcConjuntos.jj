@@ -1,12 +1,16 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5"; DEBUG_PARSER = false; 
- DEBUG_TOKEN_MANAGER = false; }PARSER_BEGIN(CalcConjuntos)
-public class CalcConjuntos{  public static void main(String args []) throws ParseException  {    CalcConjuntos parser = new CalcConjuntos(System.in);
+ DEBUG_TOKEN_MANAGER = false; }PARSER_BEGIN(CalcConjuntos)import java.io.*;
+public class CalcConjuntos{  public static void main(String args []) throws ParseException  {
+    try    {          CalcConjuntos parser = new CalcConjuntos (new FileInputStream("prog_fonte.my")); 
     Tabela tab=new Tabela();
     System.out.println("Calculadora de Conjuntos");    while (true)    {      System.out.print("#:-");      try      {        String res=CalcConjuntos.one_line(tab);
         if("" == res) break;
-        System.out.println(res);      }      catch (Exception e)      {        System.out.println("NOK.");        System.out.println(e.getMessage());        CalcConjuntos.ReInit(System.in);      }      catch (Error e)      {        System.out.println("Oops.");        System.out.println(e.getMessage());        break;      }    }  }}PARSER_END(CalcConjuntos)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN : /* OPERATORS */{  < UNION : "U" >| < INTERSECT : "/\\" >| < CONTIDO : "c" >| < PERTENCE : "E" >
+        System.out.println(res);      }      catch (Exception e)      {        System.out.println("NOK.");        System.out.println(e.getMessage());        CalcConjuntos.ReInit(System.in);      }      catch (Error e)      {        System.out.println("Oops.");        System.out.println(e.getMessage());        break;      }    }
+  }catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      }   }}PARSER_END(CalcConjuntos)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN : /* OPERATORS */{  < UNION : "U" >| < INTERSECT : "^" >| < CONTIDO : "c" >| < PERTENCE : "E" >
 | < SEQ : "..." >}
 
 TOKEN : /* COMMANDS */
@@ -24,7 +28,7 @@ TOKEN : /* COMMANDS */
 | < STRING : (< LETTERS >)+ >}String one_line(Tabela tab) :{String ret="";}{
   ret=comando(tab)<PNT_VIRG>  {
     return ret;  }
-| <PNT_VIRG>{ return "";}}
+| (<PNT_VIRG>|<EOF>){ return "";}}
 
 String comando(Tabela tab):{String ret="";String val="";Conjunto c1,c2;Token t;}
 {
