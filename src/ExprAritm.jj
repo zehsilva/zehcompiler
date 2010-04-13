@@ -10,16 +10,16 @@ public class ExprEval{  public static void main(String args []) throws ParseEx
         //System.out.print("Enter an expression like \"1+(2+3)*4;\" :");
         try
         {
-          int valor=0;
+          String valor="";
           valor=ExprEval.one_line();
-          if(0==valor) break;
+          if(""==valor) break;
           System.out.println(valor);
         }
         catch (Exception e)
         {
           System.out.println("NOK.");
           System.out.println(e.getMessage());
-          eg1.ReInit(System.in);
+          ExprEval.ReInit(System.in);
         }
         catch (Error e)
         {
@@ -52,12 +52,12 @@ TOKEN :
 | < #DIGIT : [ "0"-"9" ] >
 } 
 
-int one_line() :{int val=0;}
+String one_line() :{int val=0;}
 {
-  <EOF> { return 0;}
+  <EOF> { return "";}
 | 
-  val=sum() "\n" { return val;}
-| "\n" { return 0;}
+  val=sum() "\n" { return val+"";}
+| "\n" { return "\n";}
 }
 
 int sum() :{int val=0;int val1=0;}

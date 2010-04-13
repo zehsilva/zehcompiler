@@ -66,8 +66,14 @@ public class Conjunto {
 		}
 		return res;
 	}
+	public int size()
+	{
+		return s.size();
+	}
 	public String toString()
 	{
+		if(0==size())
+			return "{}";
 		String str="{";
 		Iterator<String> i=s.iterator();
 		str+=i.next();

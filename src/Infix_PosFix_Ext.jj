@@ -20,7 +20,7 @@
       {
         System.out.println("NOK.");
         System.out.println(e.getMessage());
-        eg1.ReInit(System.in);
+        InfixPosFixExt.ReInit(System.in);
       }
       catch (Error e)
       {

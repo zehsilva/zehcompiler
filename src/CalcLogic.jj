@@ -28,7 +28,7 @@ public class CalcLogic
         {
           System.out.println("NOK.");
           System.out.println(e.getMessage());
-          eg1.ReInit(System.in);
+          CalcLogic.ReInit(System.in);
         }
         catch (Error e)
         {
@@ -70,7 +70,7 @@ String one_line() :{int val=0;}
   <EOF> { return "";}
 | 
   val=sum() "\n" { if(0==val) return "0"; else return "1"; }
-| "\n" { return "";}
+| "\n" { return "\n";}
 }
 
 int sum() :{int val=0;int val1=0;}

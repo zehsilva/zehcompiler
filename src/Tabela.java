@@ -7,7 +7,7 @@ public class Tabela {
 	private int index(String key)
 	{
 		key=key.toLowerCase();
-		return (key.charAt(0)-'a');
+		return (key.charAt(1)-'a');
 	}
 	public void addKeyValue(String key, Conjunto value)
 	{
