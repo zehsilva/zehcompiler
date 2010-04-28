@@ -52,6 +52,7 @@ String comando(Tabela tab):{String ret="";String val="";Conjunto c1,c2;Token t;}
 
 Conjunto expr_union(Tabela tab):{Token t;Conjunto res,c1;}
 {
+  
   res=expr_inters(tab)
   (
     < UNION >
@@ -68,8 +69,9 @@ Conjunto expr_inters(Tabela tab):{Conjunto r;Conjunto c2;}
      {r=r.Intersect(c2);} )*
    {return r;}}
 Conjunto termo_expr(Tabela tab):{Token t;Conjunto r=null;}
-{  (
-    t=<VAR>(<ATRIB >r=expr_union(tab)
+{
+ // LOOKAHEAD(2)  (
+    t=<VAR>(<ATRIB >  r=expr_union(tab)
       {
         tab.addKeyValue(t.image,r);
       })?
@@ -77,7 +79,8 @@ Conjunto termo_expr(Tabela tab):{Token t;Conjunto r=null;}
     |
     r=conj_constante()
     |
-    <ABREPAR> r=expr_union(tab) <FECHAPAR>)
+    <ABREPAR> r=expr_union(tab) <FECHAPAR>
+   )
     {return r;}
 }Conjunto conj_constante():{Conjunto c=new Conjunto();Token t1;Token t2;String str;}
 {  <ABRECH>
