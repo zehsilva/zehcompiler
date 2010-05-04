@@ -1,0 +1,100 @@
+/*  CompiladorExemplo.jj  -  Analisador Léxico */
+options { 
+  JDK_VERSION = "1.5"; 
+  DEBUG_PARSER = false;
+  DEBUG_TOKEN_MANAGER = false; 
+} 
+PARSER_BEGIN(ZeLex) 
+import java.io.*; 
+public class ZeLex { 
+   public static void main(String args[])  throws ParseException  { 
+      ZeLex analisador = null;
+      System.out.print("ZELLA - ZEL Lexical Analyzer"+"\n Arquivo: "+args[0]+"\n");
+      try { 
+         analisador = new ZeLex(new FileInputStream(args[0]));
+         analisador.inicio();  
+      }  
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage()); 
+      } 
+   } 
+} 
+PARSER_END(ZeLex) 
+  
+SKIP : { " " | "\r" }
+
+SKIP : {      "!!" : comentario1
+} 
+<comentario1> SKIP: {
+"\n" |
+   <~[]> 
+}
+SKIP : {
+  			"!#": comentario2
+  	}
+  	<comentario2> SKIP: { 
+   "#!"| 
+   <~[]> 
+}
+
+TOKEN : {
+      < VAR_DCL: "vars" > |
+      < TP_STRING: "string" >|
+      < TP_REAL: "real" >|
+      < TP_INT: "int" >|
+      < TP_CHAR: "char" >|
+      < TP_LIST: "list" >|
+      < DOISP: ":" >|
+      < TAB: "\t" >   |
+      < EOL: "\n" >   |
+      < PNTVIRG: ";" >    |
+      < PNT: ".">|
+      < ATRIB: "=" >|
+      < VIRG: "," >|
+      < ABRERET: "[" >|
+      < FECHARET: "]" >|
+      < ABREPAR: "(" >|
+      < FECHAPAR: ")" >|
+      < ARROBA: "@" >|
+      < DOLLAR: "$" >|
+      < IF : "if" >|
+      < FI: "fi" >|
+      < ELSE: "else" >|
+      < IN: "in" >|
+      < TO: "to" >|
+      < STEP: "step" >|
+      < FOREACH: "foreach" >|
+      < WHILE: "while" >|
+      < END: "end" >|
+      < READ: "read" >|
+      < PRINT: "print" >|
+      < OPER_REL: (["!","=","<",">"])?"="|">"|"<" >|
+      < PLUS: "+">|
+      < MINUS: "-" >|
+      < EXP: "^" >|
+      < MULT: "*" >| 
+      < DIV: "/">|
+      < MOD: "%" >|
+      < AND: "and" >|
+      < NAND: "nand" >|
+      < OR: "or" >|
+      < NOR: "nor" >|
+      < XOR: "xor" >|
+      < NOT: "not" >|
+      < NUM_REAL: (["0"-"9"])*"."(["0"-"9"])+ >|
+      < NUM_INT: (["0"-"9"])+ >|
+      < CHAR: "'"(~["'"])"'" >|
+      < VAR:   ["A"-"z","_"](["A"-"z","0"-"9","_"])* >  |
+      < STRING: "\""(~["\""])*"\"" >}
+JAVACODE void inicio() 
+{ 
+   Token t; 
+   do { 
+      t = getNextToken(); 
+      System.out.println(tokenImage[t.kind]+"\t"+t.image);  
+   }
+   while(t.kind != EOF);  
+}
