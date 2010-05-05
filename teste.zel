@@ -1,30 +1,6 @@
-   vars: Nota1, Nota2, Nota3, MediaSemestral, MediaFinal, PrFinal, Faltas, Situacao 
-  
-   print("entre com as duas notas:") 
-   read(Nota1,Nota2, Nota3)
-   read("Entre com o percentual de faltas:", Faltas )
-  
-   MediaSemestral=(Nota1+Nota2+Nota3)/3 
-   MediaFinal=MediaSemestral 
-      
-   if(Faltas > 50 or (Faltas > 25 and MediaSemestral < 1.5)) 
-      situacao="reprovado por faltas" 
-   else
-      if(MediaSemestral < 1.5) 
-         situacao="reprovado por nota" 
-      else
-         if(MediaSemestral < 7) 
-            print("Nota mínima para a prova final:", 
-                    (5 - MediaSemestral * 0.4)/0.6  
-            read("Entre com a nota da prova final:", PrFinal 
-            MediaFinal=MediaSemestral * 0.4 + PrFinal * 0.6   
-         fi
-         !!1+2
-         if(MediaFinal >= 5) 
-            Situacao="aprovado" 
-         else
-            Situacao="reprovado por nota" 
-         fi
-      fi
-   fi
-   print("Média final é: ".$(MediaFinal)."Situacao:".Situacao." Faltas(%):".$(PercentualFalta))
+vars: int a,b;
+if(a+1)
+   print(a)
+   b=a+1;
+fi
+b=a;
