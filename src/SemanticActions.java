@@ -14,7 +14,7 @@ public class SemanticActions {
 	}
 	public static void verificaTipoIncr(char tipo1,char tipo2,Token t) throws SemanticException
 	{
-		if(tipo1=='s')
+		if(tipo1=='s'||tipo2=='s')
 			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Tipo errado na construção To ... Step ...");
 	}
 	public static void verificaTipoLista(char tipo1,char tipo2,Token t) throws SemanticException
@@ -24,8 +24,12 @@ public class SemanticActions {
 	}
 	public static void verificaString(char tipo1,Token t) throws SemanticException
 	{
-		
 		if(tipo1!='s' && Character.isLowerCase(tipo1))
+			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Este operação só deve ser para String ou Lista");
+	}
+	public static void verificaString(char tipo1,char tipo2, Token t) throws SemanticException
+	{
+		if((tipo1!='s' && Character.isLowerCase(tipo1))||(tipo2!='s' && Character.isLowerCase(tipo2)))
 			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Este operação só deve ser para String ou Lista");
 	}
 	public static void verificaTipoAritmetica(char tipo1,char tipo2,Token t,String oper) throws SemanticException

@@ -171,13 +171,13 @@ void expr_bool() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
     (
       t=<IN>
       (
-        list()
-        |termo_concat()
+        tipo1=list()
+        |tipo1=termo_concat()
       )
     )
     |
     (
-      <OPER_REL> expr_mod()
+      t=<OPER_REL> expr_mod()
     )*
   )
 }
@@ -199,7 +199,7 @@ char expr_soma() throws SemanticException :{char tipo1,tipo='n';Token t;}{  ti
 char expr_mult() throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_pow()
   (
     (t=<MULT>|t=<DIV>) tipo1=expr_pow()
-    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);tipo=tipo1;}
+    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);tipo=tipo1;}
   )*
   {return tipo;}
 }
@@ -212,22 +212,31 @@ char expr_pow() throws SemanticException :{char tipo1,tipo;Token t;}
   {return tipo;}
 }
 char termo_not() throws SemanticException :{char tipo1,tipo;Token t;}
-{  ((<NOT>)+termo_concat(){tipo='i';}|tipo=termo_concat())
+{  (
+    (<NOT>)+termo_concat()
+    {tipo='i';}
+    |tipo=termo_concat()
+  )
   {return tipo;}
 }
 char termo_concat() throws SemanticException :{Token t;char tipo='s',tipo1='s';}
-{  tipo=termo() (t=<PNT> tipo1=termo(){SemanticActions.verificaString(tipo1,t);tipo='s';})*
+{  tipo=termo() (t=<PNT> tipo1=termo(){SemanticActions.verificaString(tipo,tipo1,t);tipo='s';})*
   {return tipo;}
 }
 
-char termo() throws SemanticException :{Token t;char tipo='n';}
+char termo() throws SemanticException :{Token t;char tipo='_',tipo2='_';}
 {
-  (      (<PLUS>|<MINUS>)?
-  (t=<VAR> 
-  |tipo=simple_literal()
-  |(<ARROBA>{tipo='n';})?<ABREPAR> tipo=expr() <FECHAPAR>)
-  |<STRING>{tipo='s';}
-  |< DOLLAR>{tipo='s';}<ABREPAR> expr() <FECHAPAR>)
+  (
+    (<PLUS>|<MINUS>)?
+    (
+      t=<VAR>{tipo=tab.get(t.image).getTipo();}
+      |tipo=simple_literal()
+      |<ARROBA>{tipo='n';}<ABREPAR> expr() <FECHAPAR>
+      |<ABREPAR> tipo=expr() <FECHAPAR>
+    )
+    |<STRING>{tipo='s';}
+    |< DOLLAR>{tipo='s';}<ABREPAR> expr() <FECHAPAR>
+  )
   {return tipo;}
 }
 //------------------------------Literais e Constantes-----------------------------------------
@@ -244,14 +253,14 @@ char simple_literal() throws SemanticException :{char tipo;}
 }
 char list_literal() throws SemanticException :{char tipo;}
 {  <ABRERET>tipo=list_literal_elems()<FECHARET>
-  {    return Character.toUpperCase(tipo);
+  {    return tipo;
   }
 }
 char list_literal_elems() throws SemanticException :{Token t;char tipo1,tipo2;}
 {  tipo1=list_literal_elem()
   (
     t=<VIRG>tipo2=list_literal_elem()
-    {SemanticActions.verificaTipoLista(tipo1,tipo2,t);tipo1=tipo2;}
+    {SemanticActions.verificaTipoLista(tipo1,tipo2,t);}
   )*
   {    return Character.toUpperCase(tipo1);
   }
@@ -261,13 +270,38 @@ char list_literal_elem() throws SemanticException :{Token t;char tipo='s',tipo2=
 {
   (
     (tipo=simple_literal()|<STRING>{tipo='s';} )
-    (t=<TO> {SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+    (t=<TO>
     tipo2=simple_literal(){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
     t=<STEP>
     tipo2=simple_literal(){SemanticActions.verificaTipoIncr(tipo,tipo2,t);})?
  ){return tipo;}  
 }
-
+//--------------------------------list-------------------------------------------------------
+char list() throws SemanticException :{Token t;char tipo='_',tipo1='_';}
+{
+  <ABRERET> tipo=list_elems() <FECHARET>
+  {return tipo;}
+}
+char list_elems() throws SemanticException:{Token t;char tipo='_',tipo2='_';}
+{
+  tipo=list_elem()
+  (
+    t=<VIRG>
+    tipo2=list_elem()
+    {SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
+  {return Character.toUpperCase(tipo);}
+}
+char list_elem() throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
+{
+  tipo=expr()
+  (
+    t=<TO>
+    tipo1=expr(){SemanticActions.verificaTipoIncr(tipo,tipo1,t);}
+    <STEP>
+    tipo2=expr(){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+  )?
+  {return tipo;}
+}
 //------------------------------if,while e foreach---------------------------------------------
 void ifcmd() throws SemanticException :{}
 {  	<IF><ABREPAR>expr()<FECHAPAR><EOL>
@@ -280,22 +314,12 @@ void whilecmd() throws SemanticException :{}
   			<INDENT>corpo()<DEDENT>(<EOL>)?
   			<END>
 }
-void foreach() throws SemanticException:{}
-{  	<FOREACH><ABREPAR> <VAR> <IN> list() <FECHAPAR>
+void foreach() throws SemanticException:{Token t;char tipo;}
+{  	<FOREACH><ABREPAR> <VAR> <IN> tipo=list() <FECHAPAR>
   	<INDENT> corpo() <DEDENT>(<EOL>)?
   	<END>
 }
-//--------------------------------list-------------------------------------------------------
-void list() throws SemanticException :{}
-{
-  <ABRERET> list_elems() <FECHARET>
-}
-void list_elems() throws SemanticException:{}
-{  list_elem() (<VIRG> list_elem())*
-}
-void list_elem() throws SemanticException :{}
-{  expr() (<TO> expr() <STEP> expr())?
-}
+
 //----------------------------------Entrada e Saida------------------------------------------
 void entrada() throws SemanticException :{}
 {  	<READ>
