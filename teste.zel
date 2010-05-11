@@ -1,6 +1,10 @@
-vars: int a,b;
+vars: int a,b;real c
+string d
+list string e=["a","b","c"];
 if(a+1)
-   print(a)
-   b=a+1;
+{
+  print(a)
+  b=e+"asd";
+}
 fi
 b=a;

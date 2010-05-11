@@ -15,7 +15,7 @@ public class ZeLex {
          analisador.inicio();  
       }  
       catch(FileNotFoundException e) { 
-         System.out.println("Erro: arquivo não encontrado"); 
+         System.out.println("Erro: arquivo não encontrado "+args[0]); 
       } 
       catch(TokenMgrError e) { 
          System.out.println("Erro léxico\n" + e.getMessage()); 
@@ -156,7 +156,7 @@ TOKEN : {
       < EOL: "\n" > : DEFAULT}
   
 JAVACODE void inicio() 
-{ 
+{
    Token t; 
    do { 
       t = getNextToken(); 

@@ -1,0 +1,308 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5";
+  DEBUG_PARSER = false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
+import java.util.*;
+public class ZelParser{
+  public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
+  public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
+      System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
+      try {
+        	 fp=new FileInputStream(args[0]);
+         analisador = new ZelParser(fp);
+         inicio();
+         System.out.println(tab);
+      }  
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado "+args[0]);
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage());
+         analisador.ReInit(fp); 
+      }
+      catch (Exception e)
+      {
+        System.out.println("NOK.");
+        System.out.println(e.getMessage());
+        analisador.ReInit(fp);
+      }
+      catch (Error e)
+      {
+        System.out.println("Oops.");
+        System.out.println(e.getMessage());
+      }
+   } 
+} PARSER_END(ZelParser)
+SKIP:
+{
+  " "
+  | "\t"
+  | "\r"
+}
+
+SKIP : { 
+     "!!" : comentario1
+} 
+<comentario1> SKIP: {
+"\n" |
+   <~[]> 
+}
+SKIP : {
+  			"!#": comentario2
+  	}
+
+<comentario2> SKIP: { 
+   "#!"| 
+   <~[]> 
+}
+TOKEN : {
+      < VAR_DCL: "vars" > |
+      < TP_STRING: "string" >|
+      < TP_REAL: "real" >|
+      < TP_INT: "int" >|
+      < TP_CHAR: "char" >|
+      < TP_LIST: "list" >|
+      < DOISP: ":" >|
+      < PNTVIRG: ";" >    |
+      < PNT: ".">|
+      < ATRIB: "=" >|
+      < VIRG: "," >|
+      < ABRERET: "[" >|
+      < FECHARET: "]" >|
+      < ABREPAR: "(" >|
+      < FECHAPAR: ")" >|
+      < ARROBA: "@" >|
+      < DOLLAR: "$" >|
+      < IF : "if" >|
+      < FI: "fi" >|
+      < ELSE: "else" >|
+      < IN: "in" >|
+      < TO: "to" >|
+      < STEP: "step" >|
+      < FOREACH: "foreach" >|
+      < WHILE: "while" >|
+      < END: "end" >|
+      < READ: "read" >|
+      < PRINT: "print" >|
+      < OPER_REL: (["!","=","<",">"])?"="|">"|"<" >|
+      < PLUS: "+">|
+      < MINUS: "-" >|
+      < EXP: "^" >|
+      < MULT: "*" >| 
+      < DIV: "/">|
+      < MOD: "%" >|
+      < AND: "and" >|
+      < NAND: "nand" >|
+      < OR: "or" >|
+      < NOR: "nor" >|
+      < XOR: "xor" >|
+      < NOT: "not" >|
+      < NUM_REAL: (["0"-"9"])*"."(["0"-"9"])+ >|
+      < NUM_INT: (["0"-"9"])+ >|
+      < CHAR: "'"(~["'"])"'" >|
+      < VAR:   ["A"-"z","_"](["A"-"z","0"-"9","_"])* >  |
+      
+      < EOL: "\n" >|
+      < INDENT: "{" >|
+      < DEDENT: "}" >|
+      < STRING: "\""(~["\""])*"\"" >
+}void inicio() throws SemanticException:{}
+{
+  corpo()<EOF>
+}
+void corpo() throws SemanticException :{}
+{  (decl())? cmds()
+}
+
+void decl() throws SemanticException:{}
+{
+  <VAR_DCL><DOISP> (vartype() eoc())*
+}
+
+void vartype() throws SemanticException :{Token t;char tip;char tipo;}
+{   tip=type() t=<VAR>   {
+     SemanticActions.testaVarDcl(tab,t);
+     tab.put(t.image,new Simbolo(t.image,tip)); }
+   (<ATRIB> tipo=literal())?
+   (
+     <VIRG> t=<VAR>
+     {
+       SemanticActions.testaVarDcl(tab,t);
+       tab.put(t.image,new Simbolo(t.image,tip)); }
+     (<ATRIB> tipo=literal())?
+   )*
+}
+
+char type():{Token t;char s='_';boolean lista=false;}{  (<TP_LIST >{lista=true;})?
+  (< TP_INT>{s='i';}
+  |< TP_CHAR>{s='c';}
+  |<TP_REAL>{s='r';}
+  |<TP_STRING>{s='s';})
+  {
+    if(lista)
+      s=Character.toUpperCase(s);
+    return s;  }
+}
+
+void eoc():{}
+{
+  < EOL>|<PNTVIRG>
+}
+
+void cmds() throws SemanticException :{}
+{  (    (ifcmd() | whilecmd() | foreach() | atrib() | entrada() | saida())? eoc() )*
+}
+
+//--------------------------------Atribuição e Expressões------------------------------------
+void atrib() throws SemanticException:{Token t;}
+{  (LOOKAHEAD(2) t=<VAR>  {
+    SemanticActions.testaVar(tab,t);  }<ATRIB>)+ (expr() eoc())
+}
+
+char expr() throws SemanticException :{char tipo='s';}{  expr_and() ((<OR>|<XOR>|<NOR>) expr_and())*
+  {    return tipo;
+  }
+}
+void expr_and() throws SemanticException :{}{  expr_bool() ((<AND>|<NAND>) expr_bool())*
+}
+void expr_bool() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+{  tipo=expr_mod()
+  (
+    (
+      t=<IN>
+      (
+        list()
+        |termo_concat()
+      )
+    )
+    |
+    (
+      <OPER_REL> expr_mod()
+    )*
+  )
+}
+char expr_mod() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+{
+  tipo=expr_soma()
+  (
+    t=<MOD> tipo1=expr_soma()
+    {SemanticActions.verificaTipoMod(tipo1,tipo,t);tipo=tipo1;}
+  )*
+  {return tipo;}
+}
+char expr_soma() throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_mult()
+  ((t=<PLUS>|t=<MINUS>) tipo1=expr_mult()
+  {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);tipo=tipo1;}
+  )*
+  {return tipo;}
+}
+char expr_mult() throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_pow()
+  (
+    (t=<MULT>|t=<DIV>) tipo1=expr_pow()
+    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);tipo=tipo1;}
+  )*
+  {return tipo;}
+}
+char expr_pow() throws SemanticException :{char tipo1,tipo;Token t;}
+{  tipo=termo_not()
+  (
+    t=<EXP> tipo1=expr_pow()
+    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);}
+  )?
+  {return tipo;}
+}
+char termo_not() throws SemanticException :{char tipo1,tipo;Token t;}
+{  ((<NOT>)+termo_concat(){tipo='i';}|tipo=termo_concat())
+  {return tipo;}
+}
+char termo_concat() throws SemanticException :{Token t;char tipo='s',tipo1='s';}
+{  tipo=termo() (t=<PNT> tipo1=termo(){SemanticActions.verificaString(tipo1,t);tipo='s';})*
+  {return tipo;}
+}
+
+char termo() throws SemanticException :{Token t;char tipo='n';}
+{
+  (      (<PLUS>|<MINUS>)?
+  (t=<VAR> 
+  |tipo=simple_literal()
+  |(<ARROBA>{tipo='n';})?<ABREPAR> tipo=expr() <FECHAPAR>)
+  |<STRING>{tipo='s';}
+  |< DOLLAR>{tipo='s';}<ABREPAR> expr() <FECHAPAR>)
+  {return tipo;}
+}
+//------------------------------Literais e Constantes-----------------------------------------
+char literal() throws SemanticException :{char tipo;}
+{  (tipo=simple_literal()|tipo=list_literal()|<STRING>{tipo='s';})
+  {    return tipo;
+  }
+}
+char simple_literal() throws SemanticException :{char tipo;}
+{  (    <NUM_REAL>{tipo='r';}
+    |<NUM_INT>{tipo='i';}
+    |<CHAR>{tipo='c';})
+  {return tipo;}
+}
+char list_literal() throws SemanticException :{char tipo;}
+{  <ABRERET>tipo=list_literal_elems()<FECHARET>
+  {    return Character.toUpperCase(tipo);
+  }
+}
+char list_literal_elems() throws SemanticException :{Token t;char tipo1,tipo2;}
+{  tipo1=list_literal_elem()
+  (
+    t=<VIRG>tipo2=list_literal_elem()
+    {SemanticActions.verificaTipoLista(tipo1,tipo2,t);tipo1=tipo2;}
+  )*
+  {    return Character.toUpperCase(tipo1);
+  }
+}
+
+char list_literal_elem() throws SemanticException :{Token t;char tipo='s',tipo2='s';}
+{
+  (
+    (tipo=simple_literal()|<STRING>{tipo='s';} )
+    (t=<TO> {SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+    tipo2=simple_literal(){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+    t=<STEP>
+    tipo2=simple_literal(){SemanticActions.verificaTipoIncr(tipo,tipo2,t);})?
+ ){return tipo;}  
+}
+
+//------------------------------if,while e foreach---------------------------------------------
+void ifcmd() throws SemanticException :{}
+{  	<IF><ABREPAR>expr()<FECHAPAR><EOL>
+  	<INDENT>corpo() <DEDENT>(<EOL>)?
+  	(<ELSE><INDENT>corpo()<DEDENT>(<EOL>)?)?
+  	<FI>
+}
+void whilecmd() throws SemanticException :{}
+{  	<WHILE><ABREPAR>expr()<FECHAPAR><EOL>
+  			<INDENT>corpo()<DEDENT>(<EOL>)?
+  			<END>
+}
+void foreach() throws SemanticException:{}
+{  	<FOREACH><ABREPAR> <VAR> <IN> list() <FECHAPAR>
+  	<INDENT> corpo() <DEDENT>(<EOL>)?
+  	<END>
+}
+//--------------------------------list-------------------------------------------------------
+void list() throws SemanticException :{}
+{
+  <ABRERET> list_elems() <FECHARET>
+}
+void list_elems() throws SemanticException:{}
+{  list_elem() (<VIRG> list_elem())*
+}
+void list_elem() throws SemanticException :{}
+{  expr() (<TO> expr() <STEP> expr())?
+}
+//----------------------------------Entrada e Saida------------------------------------------
+void entrada() throws SemanticException :{}
+{  	<READ>
+  	<ABREPAR>
+  					(<STRING><VIRG>)?(<VAR><VIRG>)+
+  	<FECHAPAR>
+}
+void saida() throws SemanticException :{}
+{  		<PRINT>				<ABREPAR> 					expr() (<VIRG> expr())? 				<FECHAPAR>
+}
