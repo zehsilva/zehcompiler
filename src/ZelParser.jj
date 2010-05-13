@@ -1,7 +1,7 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5";
-  DEBUG_PARSER = false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
+  DEBUG_PARSER =false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
 import java.util.*;
 public class ZelParser{
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
@@ -100,7 +100,7 @@ TOKEN : {
       < NUM_REAL: (["0"-"9"])*"."(["0"-"9"])+ >|
       < NUM_INT: (["0"-"9"])+ >|
       < CHAR: "'"(~["'"])"'" >|
-      < VAR:   ["A"-"z","_"](["A"-"z","0"-"9","_"])* >  |
+      < VAR:   ["a"-"z","A"-"Z","_"](["a"-"z","A"-"Z","0"-"9","_"])* >  |
       
       < EOL: "\n" >|
       < INDENT: "{" >|
@@ -111,25 +111,40 @@ TOKEN : {
   corpo()<EOF>
 }
 void corpo() throws SemanticException :{}
-{  (decl())? cmds()
+{
+    (decl())? cmds()
 }
 
 void decl() throws SemanticException:{}
 {
-  <VAR_DCL><DOISP> (vartype() eoc())*
+  <VAR_DCL><DOISP> ( LOOKAHEAD(2) (vartype())? eoc() )*
 }
 
-void vartype() throws SemanticException :{Token t;char tip;char tipo;}
-{   tip=type() t=<VAR>   {
+void vartype() throws SemanticException :{Token t;char tipo1,tipo2;Simbolo s;}
+{   tipo1=type() t=<VAR>   {
      SemanticActions.testaVarDcl(tab,t);
-     tab.put(t.image,new Simbolo(t.image,tip)); }
-   (<ATRIB> tipo=literal())?
+     s=new Simbolo(t.image,tipo1);
+     tab.put(t.image,s); }
+   (
+     <ATRIB> tipo2=literal()     {
+       SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+       s.setInicializada();
+     }
+   )?
    (
      <VIRG> t=<VAR>
      {
        SemanticActions.testaVarDcl(tab,t);
-       tab.put(t.image,new Simbolo(t.image,tip)); }
-     (<ATRIB> tipo=literal())?
+       s=new Simbolo(t.image,tipo1);
+       tab.put(t.image,s);
+     }
+     (
+       <ATRIB> tipo2=literal()
+       {
+         SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+         s.setInicializada();
+       }
+     )?
    )*
 }
 
@@ -154,32 +169,44 @@ void cmds() throws SemanticException :{}
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
-void atrib() throws SemanticException:{Token t;}
-{  (LOOKAHEAD(2) t=<VAR>  {
-    SemanticActions.testaVar(tab,t);  }<ATRIB>)+ (expr() eoc())
+void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2;}
+{  (
+    LOOKAHEAD(2)
+    t=<VAR>
+    {
+      if(tipo1=='_')      	  tipo1=SemanticActions.testaVar(tab,t);
+      	else
+      	{
+      	  tipo2=SemanticActions.testaVar(tab,t);
+      	  SemanticActions.verificaLadoDireito(tipo1,tipo2,t);      	}
+    }
+    <ATRIB>
+  )+
+  tipo2=expr()
+  {SemanticActions.verificaLadoDireito(tipo1,tipo2,t);}
 }
 
-char expr() throws SemanticException :{char tipo='s';}{  expr_and() ((<OR>|<XOR>|<NOR>) expr_and())*
-  {    return tipo;
-  }
+char expr() throws SemanticException :{char tipo='i';}{  tipo=expr_and() ((<OR>|<XOR>|<NOR>) expr_and() {tipo='i';})*
+  {return tipo; }
 }
-void expr_and() throws SemanticException :{}{  expr_bool() ((<AND>|<NAND>) expr_bool())*
+char expr_and() throws SemanticException :{char tipo='i';}{  tipo=expr_bool() ((<AND>|<NAND>) expr_bool() {tipo='i';})*
+  {return tipo;}
 }
-void expr_bool() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+char expr_bool() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
 {  tipo=expr_mod()
   (
     (
-      t=<IN>
-      (
-        tipo1=list()
-        |tipo1=termo_concat()
-      )
+      t=<IN> tipo1=termo_concat()
+      {SemanticActions.verificaInList(tipo,tipo1,t);tipo='i';}
     )
     |
     (
-      t=<OPER_REL> expr_mod()
+      t=<OPER_REL> tipo1=expr_mod()
+      {SemanticActions.verificaTipoRelacional(tipo,tipo1,t,t.image);tipo='i';}
+      
     )*
   )
+  {return tipo;}
 }
 char expr_mod() throws SemanticException :{char tipo1='n',tipo='_';Token t;}
 {
@@ -220,7 +247,7 @@ char termo_not() throws SemanticException :{char tipo1,tipo;Token t;}
   {return tipo;}
 }
 char termo_concat() throws SemanticException :{Token t;char tipo='s',tipo1='s';}
-{  tipo=termo() (t=<PNT> tipo1=termo(){SemanticActions.verificaString(tipo,tipo1,t);tipo='s';})*
+{  tipo=termo() (t=<PNT> tipo1=termo(){SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';})*
   {return tipo;}
 }
 
@@ -229,13 +256,14 @@ char termo() throws SemanticException :{Token t;char tipo='_',tipo2='_';}
   (
     (<PLUS>|<MINUS>)?
     (
-      t=<VAR>{tipo=tab.get(t.image).getTipo();}
+      t=<VAR>{tipo=SemanticActions.testaVarTipoInicializada(tab,t);}
       |tipo=simple_literal()
       |<ARROBA>{tipo='n';}<ABREPAR> expr() <FECHAPAR>
       |<ABREPAR> tipo=expr() <FECHAPAR>
     )
     |<STRING>{tipo='s';}
     |< DOLLAR>{tipo='s';}<ABREPAR> expr() <FECHAPAR>
+    |tipo=list()
   )
   {return tipo;}
 }

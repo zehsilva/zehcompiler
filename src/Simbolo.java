@@ -3,13 +3,34 @@ public class Simbolo {
 	public String nome;
 	public char tipo;
 	public int referencia;
+	public boolean inicializada;
 	public static int ultimo=1;
+	public static int noinit;
 	public Simbolo(String nome, char tipo, int ref, int ult)
 	{
 		this.nome=nome;
 		this.tipo=tipo;
 		this.referencia=ref;
+		this.inicializada=false;
+		//Simbolo.incInit();
 		setUltimo(ult);
+	}
+	public void setInicializada()
+	{
+		if(!inicializada)
+		{
+			noinit--;
+			this.inicializada=true;
+		}
+	}
+	public static void incInit()
+	{
+		noinit=noinit+1;
+		//System.out.println("noinit="+noinit);
+	}
+	public boolean isInicializada()
+	{
+		return this.inicializada;
 	}
 	public Simbolo(String nome, char tipo)
 	{
@@ -71,6 +92,6 @@ public class Simbolo {
 	}
 	public String toString()
 	{
-		return "[nome: "+nome+"; tipo: "+tipo+"; ref: "+referencia+"]";
+		return "[nome: "+nome+"; tp: "+tipo+"; ref: "+referencia+"; init: "+inicializada+"; noinit: "+noinit+"]";
 	}
 }

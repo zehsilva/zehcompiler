@@ -1,10 +1,10 @@
-vars: int a,b;real c
+vars: int a,b=1;real c
 string d
-list string e=["a","b","c"];
-if(a+1)
-{
-  print(a)
-  b=e+"asd";
-}
-fi
-b=a;
+list char e=['a','b','c'] 
+
+list char fr="123123";
+
+d="asdasd";
+e=d=['a','b','c'];
+a= 1 % 2
+a=b;
