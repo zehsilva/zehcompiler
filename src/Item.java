@@ -1,8 +1,9 @@
-
+import java.util.*;
 public class Item {
 	public char tipo;
 	public String valor;
 	public Object valor2;
+	public ArrayList<Item> valorlst;
 	public Item()
 	{
 		this.valor="";
@@ -12,6 +13,11 @@ public class Item {
 	{
 		tipo=t;
 		valor=s;
+	}
+	public Item(char t,ArrayList<Item> s)
+	{
+		tipo=t;
+		valorlst=s;
 	}
 	public Item(char t,Object o)
 	{
