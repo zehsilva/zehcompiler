@@ -141,4 +141,14 @@ public class SemanticActions {
 			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Tipo não compatível de atribuição: "+tipo1+" <- "+tipo2);
 		return warning;
 	}
+	public void addItemLista(ArrayList<Item> lst,String valor,char tipo)
+	{
+		Item it=new Item(tipo,valor);
+		lst.add(it);
+	}
+	public void addItemLista(ArrayList<Item> lst,Object valor,char tipo)
+	{
+		Item it=new Item(tipo,valor);
+		lst.add(it);
+	}
 }
