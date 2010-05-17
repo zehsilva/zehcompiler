@@ -5,7 +5,7 @@
 import java.util.*;
 public class ZelParser{
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
-  public static ArrayList<Item> lixo=new ArrayList<Item>();
+  public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
       System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
       try {
@@ -122,7 +122,7 @@ void decl() throws SemanticException:{}
 }
 
 void vartype() throws SemanticException :
-{ArrayList<Item> lst=new ArrayList<Item>();Token t;char tipo1,tipo2;Simbolo s;}
+{ArrayDeque<Item> lst=new ArrayDeque<Item>();Token t;char tipo1,tipo2;Simbolo s;}
 {   tipo1=type() t=<VAR>   {
      SemanticActions.testaVarDcl(tab,t);
      s=new Simbolo(t.image,tipo1);
@@ -188,110 +188,172 @@ void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2;}
   {SemanticActions.verificaLadoDireito(tipo1,tipo2,t);}
 }
 
-char expr() throws SemanticException :{char tipo;ArrayList<Item> lst=new ArrayList<Item>();}{  tipo=expr_aux(lst)
-  {return tipo; }
+char expr() throws SemanticException :{char tipo;ArrayDeque<Item> lst=new ArrayDeque<Item>();}{  tipo=expr_aux(lst)
+  {
+    System.out.println(lst);
+    return tipo; }
 }
-char expr_aux(ArrayList<Item> expr_lst) throws SemanticException :{char tipo='i';}
+char expr_aux(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';}
 {
-  tipo=expr_and(expr_lst) ((<OR>|<XOR>|<NOR>) expr_and(expr_lst) {tipo='i';})*
+  tipo=expr_and(expr_lst)
+  (
+    (t=<OR>|t=<XOR>|t=<NOR>) expr_and(expr_lst)
+    {
+      tipo='i';
+      SemanticActions.addItemLista(expr_lst,t.image,'o');})*
   {return tipo; }
 }
-char expr_and(ArrayList<Item> expr_lst) throws SemanticException :{char tipo='i';}{  tipo=expr_bool(expr_lst) ((<AND>|<NAND>) expr_bool(expr_lst) {tipo='i';})*
+char expr_and(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';}{  tipo=expr_bool(expr_lst)
+  (
+    (t=<AND>|t=<NAND>) expr_bool(expr_lst)
+    {
+      tipo='i';
+      SemanticActions.addItemLista(expr_lst,t.image,'o');
+    }
+  )*
   {return tipo;}
 }
-char expr_bool(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
 {  tipo=expr_mod(expr_lst)
   (
     (
-      t=<IN> tipo1=termo_concat(expr_lst)
-      {SemanticActions.verificaInList(tipo,tipo1,t);tipo='i';}
+      {ArrayDeque<Item> d=new ArrayDeque<Item>();}
+      t=<IN> tipo1=termo_concat(d)
+      {
+        SemanticActions.verificaInList(tipo,tipo1,t);
+        tipo='i';
+        SemanticActions.addItemLista(expr_lst,d,tipo1);
+        SemanticActions.addItemLista(expr_lst,t.image,'o');
+      }
     )
     |
     (
       t=<OPER_REL> tipo1=expr_mod(expr_lst)
-      {SemanticActions.verificaTipoRelacional(tipo,tipo1,t,t.image);tipo='i';}
+      {
+        SemanticActions.verificaTipoRelacional(tipo,tipo1,t,t.image);
+        tipo='i';
+        SemanticActions.addItemLista(expr_lst,t.image,'o');}
       
     )*
   )
   {return tipo;}
 }
-char expr_mod(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+char expr_mod(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
 {
   tipo=expr_soma(expr_lst)
   (
     t=<MOD> tipo1=expr_soma(expr_lst)
-    {SemanticActions.verificaTipoMod(tipo1,tipo,t);tipo=tipo1;}
+    {
+      SemanticActions.verificaTipoMod(tipo1,tipo,t);
+      tipo=tipo1;
+      SemanticActions.addItemLista(expr_lst,t.image,'o');}
   )*
   {return tipo;}
 }
-char expr_soma(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_mult(expr_lst)
+char expr_soma(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_mult(expr_lst)
   ((t=<PLUS>|t=<MINUS>) tipo1=expr_mult(expr_lst)
-  {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);tipo=tipo1;}
+  {
+    SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
+    tipo=tipo1;
+    SemanticActions.addItemLista(expr_lst,t.image,'o');}
   )*
   {return tipo;}
 }
-char expr_mult(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_pow(expr_lst)
+char expr_mult(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_pow(expr_lst)
   (
     (t=<MULT>|t=<DIV>) tipo1=expr_pow(expr_lst)
-    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);tipo=tipo1;}
+    {
+      SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
+      tipo=tipo1;
+      SemanticActions.addItemLista(expr_lst,t.image,'o');
+    }
   )*
   {return tipo;}
 }
-char expr_pow(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;}
+char expr_pow(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;}
 {  tipo=termo_not(expr_lst)
   (
     t=<EXP> tipo1=expr_pow(expr_lst)
-    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);}
+    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);
+    SemanticActions.addItemLista(expr_lst,t.image,'o');}
   )?
   {return tipo;}
 }
-char termo_not(ArrayList<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;}
+char termo_not(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;int counter=0;}
 {  (
-    (<NOT>)+termo_concat(expr_lst)
-    {tipo='i';}
+    (t=<NOT> {counter++;})+
+    termo_concat(expr_lst)
+    {
+      tipo='i';
+      if(counter%2==0)
+      {        SemanticActions.addItemLista(expr_lst,t.image,'o');
+        SemanticActions.addItemLista(expr_lst,t.image,'o');
+      }else
+        SemanticActions.addItemLista(expr_lst,t.image,'o');
+    }
     |tipo=termo_concat(expr_lst)
   )
   {return tipo;}
 }
-char termo_concat(ArrayList<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo1='s';}
-{  tipo=termo(expr_lst) (t=<PNT> tipo1=termo(expr_lst){SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';})*
+char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo1='s';}
+{  tipo=termo(expr_lst)
+  (
+    t=<PNT> tipo1=termo(expr_lst)
+    {
+      SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';
+      SemanticActions.addItemLista(expr_lst,".",'o');
+    }
+  )*
   {return tipo;}
 }
 
-char termo(ArrayList<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo2='_';}
+char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo2='_';}
 {
   (
     (<PLUS>|<MINUS>)?
     (
-      t=<VAR>{tipo=SemanticActions.testaVarTipoInicializada(tab,t);}
+      t=<VAR>
+      {tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+      SemanticActions.addItemLista(expr_lst,t.image,'v');}
       |tipo=simple_literal(expr_lst)
-      |<ARROBA>{tipo='n';}<ABREPAR> expr_aux(expr_lst) <FECHAPAR>
+      |<ARROBA>{tipo='r';}<ABREPAR> expr_aux(expr_lst) <FECHAPAR>
       |<ABREPAR> tipo=expr_aux(expr_lst) <FECHAPAR>
     )
-    |<STRING>{tipo='s';}
-    |< DOLLAR>{tipo='s';}<ABREPAR> expr_aux(expr_lst) <FECHAPAR>
-    |tipo=list(expr_lst)
+    |
+    	t=<STRING>
+    {tipo='s';SemanticActions.addItemLista(expr_lst,t.image,tipo); }
+    |
+    	t=<DOLLAR><ABREPAR> expr_aux(expr_lst) <FECHAPAR>
+    {tipo='s';SemanticActions.addItemLista(expr_lst,"$",'o');}
+    |
+    	{ArrayDeque<Item> d=new ArrayDeque<Item>();}
+    tipo=list(d)
+    {SemanticActions.addItemLista(expr_lst,d,tipo);}
+    
+    
   )
   {return tipo;}
 }
 //------------------------------Literais e Constantes-----------------------------------------
-char literal(ArrayList<Item> expr_lst) throws SemanticException :{char tipo;}
+char literal(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo;}
 {  (tipo=simple_literal(expr_lst)|tipo=list_literal(expr_lst)|<STRING>{tipo='s';})
   {    return tipo;
   }
 }
-char simple_literal(ArrayList<Item> expr_lst) throws SemanticException :{char tipo;}
-{  (    <NUM_REAL>{tipo='r';}
-    |<NUM_INT>{tipo='i';}
-    |<CHAR>{tipo='c';})
-  {return tipo;}
+char simple_literal(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo;}
+{  (    t=<NUM_REAL>{tipo='r';}
+    |t=<NUM_INT>{tipo='i';}
+    |t=<CHAR>{tipo='c';})
+  {
+    SemanticActions.addItemLista(expr_lst,t.image,tipo);
+    return tipo;}
 }
-char list_literal(ArrayList<Item> expr_lst) throws SemanticException :{char tipo;}
+char list_literal(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo;}
 {  <ABRERET>tipo=list_literal_elems(expr_lst)<FECHARET>
   {    return tipo;
   }
 }
-char list_literal_elems(ArrayList<Item> expr_lst) throws SemanticException :{Token t;char tipo1,tipo2;}
+char list_literal_elems(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo1,tipo2;}
 {  tipo1=list_literal_elem(expr_lst)
   (
     t=<VIRG>tipo2=list_literal_elem(expr_lst)
@@ -301,7 +363,7 @@ char list_literal_elems(ArrayList<Item> expr_lst) throws SemanticException :{Tok
   }
 }
 
-char list_literal_elem(ArrayList<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo2='s';}
+char list_literal_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo2='s';}
 {
   (
     (tipo=simple_literal(expr_lst)|<STRING>{tipo='s';} )
@@ -312,28 +374,34 @@ char list_literal_elem(ArrayList<Item> expr_lst) throws SemanticException :{Toke
  ){return tipo;}  
 }
 //--------------------------------list-------------------------------------------------------
-char list(ArrayList<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo1='_';}
+char list(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo1='_';}
 {
   <ABRERET> tipo=list_elems(expr_lst) <FECHARET>
   {return tipo;}
 }
-char list_elems(ArrayList<Item> expr_lst) throws SemanticException:{Token t;char tipo='_',tipo2='_';}
+char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
+{Token t;char tipo='_',tipo2='_';ArrayDeque<Item> d;}
 {
-  tipo=list_elem(expr_lst)
+  	{d=new ArrayDeque<Item>();}
+  tipo=list_elem(d)
+  {SemanticActions.addItemLista(expr_lst,d,tipo);}
   (
     t=<VIRG>
+    {d=new ArrayDeque<Item>();}
     tipo2=list_elem(expr_lst)
-    {SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
+    {
+      SemanticActions.addItemLista(expr_lst,d,tipo);
+      SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
   {return Character.toUpperCase(tipo);}
 }
-char list_elem(ArrayList<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
+char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
 {
   tipo=expr_aux(expr_lst)
   (
     t=<TO>
-    tipo1=expr_aux(expr_lst){SemanticActions.verificaTipoIncr(tipo,tipo1,t);}
+    tipo1=expr_aux(lixo){SemanticActions.verificaTipoIncr(tipo,tipo1,t);}
     <STEP>
-    tipo2=expr_aux(expr_lst){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+    tipo2=expr_aux(lixo){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
   )?
   {return tipo;}
 }

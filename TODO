@@ -1,0 +1,11 @@
+
+1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
+<EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
+2. Variáveis não-inicializadas;
+3. Variáveis inicializadas mas não utilizadas;
+4. Otimizador de Expressões
+	- Expressões numéricas;
+	- Expressões com strings;
+	- Expressões com listas;
+5. Estrutura de dados para comandos.
+6. 

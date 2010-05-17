@@ -4,7 +4,7 @@ list char e=['a','b','c']
 
 list char fr="123123";
 
-d="asdasd";
+d="asdasd"."b";
 e=d=['a','b','c'];
-a= 1 % 2
+a= 1 % 2+5*7
 a=b;

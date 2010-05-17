@@ -1,4 +1,6 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.HashMap;
 public class SemanticActions {
 
 	
@@ -141,14 +143,56 @@ public class SemanticActions {
 			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Tipo não compatível de atribuição: "+tipo1+" <- "+tipo2);
 		return warning;
 	}
-	public void addItemLista(ArrayList<Item> lst,String valor,char tipo)
+	public static void addItemLista(ArrayDeque<Item> lst,String valor,char tipo)
 	{
-		Item it=new Item(tipo,valor);
-		lst.add(it);
+		Item it=null;
+		if('c'==tipo)
+			it=new Item(tipo,valor.charAt(0));
+		else
+		{
+			if('i'==tipo)
+				it=new Item(tipo,Integer.parseInt(valor));
+			else
+			{
+				if('r'==tipo)
+					it=new Item(tipo,Double.parseDouble(valor));
+				else
+					it=new Item(tipo,valor);
+			}
+		}
+		lst.offerFirst(it);
 	}
-	public void addItemLista(ArrayList<Item> lst,Object valor,char tipo)
+	public static void addItemLista(ArrayDeque<Item> lst,Object valor,char tipo)
 	{
 		Item it=new Item(tipo,valor);
-		lst.add(it);
+		lst.offerFirst(it);
+	}
+	public static void addItemLista(ArrayDeque<Item> lst,ArrayDeque<Item> valor,char tipo)
+	{
+		Item it=new Item(tipo,valor);
+		lst.offerFirst(it);
+	}
+	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst)
+	{
+		ArrayDeque<Item> stk;
+		Item it1,it2;
+		boolean cont=false;
+		while(cont)
+		{
+			it1=lst.pollFirst();
+			try{
+				if(it1.isOper())
+				{
+					continue;
+				}else
+				{
+					
+				}
+			}catch(Exception E)
+			{
+				;
+			}
+		}
+		return lst;
 	}
 }
