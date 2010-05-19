@@ -31,6 +31,7 @@ public class Item {
 	}
 	public Item(char t,char o)
 	{
+		
 		tipo=t;
 		valorchar=o;
 		valor=o+"";

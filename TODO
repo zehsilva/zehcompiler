@@ -1,4 +1,4 @@
-
+/*** TODO
 1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
 <EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
 2. Variáveis não-inicializadas;
@@ -9,3 +9,4 @@
 	- Expressões com listas;
 5. Estrutura de dados para comandos.
 6. 
+******/

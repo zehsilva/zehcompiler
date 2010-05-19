@@ -1,9 +1,23 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{  JDK_VERSION = "1.5";
+ */
+
+options{  JDK_VERSION = "1.5";
   DEBUG_PARSER =false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
 import java.util.*;
 public class ZelParser{
+/*** TODO ZEL
+1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
+<EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
+2. Variáveis não-inicializadas;
+3. Variáveis inicializadas mas não utilizadas;
+4. Otimizador de Expressões
+	- Expressões numéricas;
+	- Expressões com strings;
+	- Expressões com listas;
+5. Estrutura de dados para comandos.
+6. 
+******/
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
   public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
@@ -254,7 +268,7 @@ char expr_soma(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
   ((t=<PLUS>|t=<MINUS>) tipo1=expr_mult(expr_lst)
   {
     SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
-    tipo=tipo1;
+    //tipo=tipo1;
     SemanticActions.addItemLista(expr_lst,t.image,'o');}
   )*
   {return tipo;}
@@ -388,7 +402,7 @@ char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
   (
     t=<VIRG>
     {d=new ArrayDeque<Item>();}
-    tipo2=list_elem(expr_lst)
+    tipo2=list_elem(d)
     {
       SemanticActions.addItemLista(expr_lst,d,tipo);
       SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
@@ -397,6 +411,8 @@ char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
 char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
 {
   tipo=expr_aux(expr_lst)
+  {    System.out.println(expr_lst);
+  }
   (
     t=<TO>
     tipo1=expr_aux(lixo){SemanticActions.verificaTipoIncr(tipo,tipo1,t);}

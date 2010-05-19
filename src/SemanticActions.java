@@ -147,7 +147,7 @@ public class SemanticActions {
 	{
 		Item it=null;
 		if('c'==tipo)
-			it=new Item(tipo,valor.charAt(0));
+			it=new Item(tipo,valor.charAt(1));
 		else
 		{
 			if('i'==tipo)
@@ -174,9 +174,10 @@ public class SemanticActions {
 	}
 	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst)
 	{
-		ArrayDeque<Item> stk;
-		Item it1,it2;
+		ArrayDeque<Item> stk=new ArrayDeque<Item>();
+		Item it1,it2,it3;
 		boolean cont=false;
+		
 		while(cont)
 		{
 			it1=lst.pollFirst();
@@ -186,7 +187,7 @@ public class SemanticActions {
 					continue;
 				}else
 				{
-					
+					stk.offerFirst(it1);
 				}
 			}catch(Exception E)
 			{

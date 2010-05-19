@@ -5,6 +5,6 @@ list char e=['a','b','c']
 list char fr="123123";
 
 d="asdasd"."b";
-e=d=['a','b','c'];
+e=d=['a','b','c'+1]."asda";
 a= 1 % 2+5*7
-a=b;
+
