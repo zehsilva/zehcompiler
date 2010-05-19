@@ -40,12 +40,14 @@ public class Item {
 	{
 		tipo=t;
 		valordouble=o;
+		valorint=(int)o;
 		valor=o+"";
 	}
 	public Item(char t,int o)
 	{
 		tipo=t;
 		valorint=o;
+		valordouble=(double)o;
 		valor=o+"";
 	}
 	public String getValor()
@@ -87,7 +89,15 @@ public class Item {
 	}
 	public boolean isNum()
 	{
-		return (this.tipo=='i'||this.tipo=='r');
+		return (this.tipo=='i'||this.tipo=='r'||this.tipo=='n');
+	}
+	public boolean isReal()
+	{
+		return (this.tipo=='r'||this.tipo=='n');
+	}
+	public boolean isInt()
+	{
+		return (this.tipo=='i');
 	}
 	public boolean isChar()
 	{

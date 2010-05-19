@@ -172,26 +172,79 @@ public class SemanticActions {
 		Item it=new Item(tipo,valor);
 		lst.offerFirst(it);
 	}
-	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst)
+	public static Item execOper(Item oper,Item var1, Item var2,char tipoA)
+	{
+		Item res=new Item();
+		if(oper.getValor().equals("not"))
+			;
+		else
+		{
+			double valor1=0;int valor2=0;
+			if(var1.isReal()||var2.isReal()||tipoA=='r')
+			{
+				valor1=0;
+				if(oper.getValor().equals("+"))
+					valor1=var1.getValorDouble()+var2.getValorDouble();
+				if(oper.getValor().equals("*"))
+					valor1=var1.getValorDouble()*var2.getValorDouble();
+				if(oper.getValor().equals("/"))
+					valor1=var2.getValorDouble()/var1.getValorDouble();
+				if(oper.getValor().equals("-"))
+					valor1=var2.getValorDouble()-var1.getValorDouble();
+				res=new Item('r',valor1);
+			}
+			else
+			{
+				if(oper.getValor().equals("+"))
+					valor2=var1.getValorInt()+var2.getValorInt();
+				if(oper.getValor().equals("*"))
+					valor2=var1.getValorInt()*var2.getValorInt();
+				if(oper.getValor().equals("/"))
+					valor2=var2.getValorInt()/var1.getValorInt();
+				if(oper.getValor().equals("-"))
+					valor2=var2.getValorInt()-var1.getValorInt();
+				if(oper.getValor().equals("%"))
+					valor2=var2.getValorInt()%var1.getValorInt();
+				res=new Item('i',valor2);
+			}
+		}
+		//System.out.println("res = "+res);
+		return res;
+	}
+	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst,char tipoA)
 	{
 		ArrayDeque<Item> stk=new ArrayDeque<Item>();
 		Item it1,it2,it3;
-		boolean cont=false;
+		boolean cont=true;
 		
 		while(cont)
 		{
-			it1=lst.pollFirst();
+			it1=lst.pollLast();
+			
+			
 			try{
 				if(it1.isOper())
 				{
-					continue;
+					System.out.println(it1);
+					while(stk.size()>1)
+					{
+						it2=stk.pollFirst();
+						it3=stk.pollFirst();
+						stk.offerFirst(execOper(it1,it2,it3,tipoA));
+						
+					}
+						System.out.println(it1);
+						it2=stk.pollFirst();
+						lst.offerLast(it2);
+						System.out.println("lst = "+lst);
+						cont=false;
 				}else
 				{
 					stk.offerFirst(it1);
 				}
 			}catch(Exception E)
 			{
-				;
+				cont=false;
 			}
 		}
 		return lst;

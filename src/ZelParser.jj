@@ -185,25 +185,31 @@ void cmds() throws SemanticException :{}
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
-void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2;}
+void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2,tipo='_';}
 {  (
     LOOKAHEAD(2)
     t=<VAR>
     {
-      if(tipo1=='_')      	  tipo1=SemanticActions.testaVar(tab,t);
+      if(tipo1=='_')
+      {              	  tipo1=SemanticActions.testaVar(tab,t);
+      	  tipo=tipo1;
+      	}
       	else
       	{
       	  tipo2=SemanticActions.testaVar(tab,t);
+      	  tipo=tipo2;
       	  SemanticActions.verificaLadoDireito(tipo1,tipo2,t);      	}
     }
     <ATRIB>
   )+
-  tipo2=expr()
+  tipo2=expr(tipo)
   {SemanticActions.verificaLadoDireito(tipo1,tipo2,t);}
 }
 
-char expr() throws SemanticException :{char tipo;ArrayDeque<Item> lst=new ArrayDeque<Item>();}{  tipo=expr_aux(lst)
+char expr(char tipoAtrib) throws SemanticException :{char tipo;ArrayDeque<Item> lst=new ArrayDeque<Item>();}{  tipo=expr_aux(lst)
   {
+    System.out.println(lst);
+    SemanticActions.otimizaExp(lst,tipoAtrib);
     System.out.println(lst);
     return tipo; }
 }
@@ -423,13 +429,13 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
 }
 //------------------------------if,while e foreach---------------------------------------------
 void ifcmd() throws SemanticException :{}
-{  	<IF><ABREPAR>expr()<FECHAPAR><EOL>
+{  	<IF><ABREPAR>expr('_')<FECHAPAR><EOL>
   	<INDENT>corpo() <DEDENT>(<EOL>)?
   	(<ELSE><INDENT>corpo()<DEDENT>(<EOL>)?)?
   	<FI>
 }
 void whilecmd() throws SemanticException :{}
-{  	<WHILE><ABREPAR>expr()<FECHAPAR><EOL>
+{  	<WHILE><ABREPAR>expr('_')<FECHAPAR><EOL>
   			<INDENT>corpo()<DEDENT>(<EOL>)?
   			<END>
 }
@@ -447,5 +453,5 @@ void entrada() throws SemanticException :{}
   	<FECHAPAR>
 }
 void saida() throws SemanticException :{}
-{  		<PRINT>				<ABREPAR> 					expr() (<VIRG> expr())? 				<FECHAPAR>
+{  		<PRINT>				<ABREPAR> 					expr('_') (<VIRG> expr('_'))? 				<FECHAPAR>
 }
