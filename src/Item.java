@@ -6,13 +6,14 @@ public class Item {
 	public Object valorobj;
 	public double valordouble;
 	public int valorint;
-	static enum op{ADD,SUB,MULT,DIV,MOD,CONCAT,EXP,NOT,AND,NAND,XOR,OR,NOR,DOLLAR,ARROBA,NONE};
+	static enum op{ADD,SUB,MULT,DIV,MOD,CONCAT,EXP,NOT,AND,NAND,XOR,OR,NOR,DOLLAR,ARROBA,MAIOR,MENOR,GT,LS,GTEQ,LSEQ,EQ,DIFF,IN,NONE};
 	op oper=op.NONE;
 	public ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 	public Item()
 	{
 		this.valor="";
 		this.tipo='o';
+		oper=op.NONE;
 	}
 	public Item(char t,String s)
 	{

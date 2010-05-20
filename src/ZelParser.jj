@@ -121,13 +121,13 @@ TOKEN : {
       < INDENT: "{" >|
       < DEDENT: "}" >|
       < STRING: "\""(~["\""])*"\"" >
-}void inicio() throws SemanticException:{}
+}void inicio() throws SemanticException:{LinkedList<Comando> com=new LinkedList<Comando>();}
 {
-  corpo()<EOF>
+  corpo(com)<EOF>
 }
-void corpo() throws SemanticException :{}
+void corpo(LinkedList<Comando> com) throws SemanticException :{}
 {
-    (decl())? cmds()
+    (decl())? cmds(com)
 }
 
 void decl() throws SemanticException:{}
@@ -180,12 +180,14 @@ void eoc():{}
   < EOL>|<PNTVIRG>
 }
 
-void cmds() throws SemanticException :{}
-{  (    (ifcmd() | whilecmd() | foreach() | atrib() | entrada() | saida())? eoc() )*
+void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
+{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms1) | entrada(coms1) | saida(coms1))? eoc() )*
+  {    coms.add(com);
+  }
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
-void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2,tipo='_';}
+Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';}
 {  (
     LOOKAHEAD(2)
     t=<VAR>
@@ -203,7 +205,10 @@ void atrib() throws SemanticException:{Token t;char tipo1='_',tipo2,tipo='_';}
     <ATRIB>
   )+
   tipo2=expr(tipo)
-  {SemanticActions.verificaLadoDireito(tipo1,tipo2,t);}
+  {
+    SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+    return com;
+  }
 }
 
 char expr(char tipoAtrib) throws SemanticException :{char tipo;ArrayDeque<Item> lst=new ArrayDeque<Item>();}{  tipo=expr_aux(lst)
@@ -243,7 +248,7 @@ char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1=
         SemanticActions.verificaInList(tipo,tipo1,t);
         tipo='i';
         SemanticActions.addItemLista(expr_lst,d,tipo1);
-        SemanticActions.addItemLista(expr_lst,t.image,'o');
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.IN);
       }
     )
     |
@@ -252,7 +257,19 @@ char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1=
       {
         SemanticActions.verificaTipoRelacional(tipo,tipo1,t,t.image);
         tipo='i';
-        SemanticActions.addItemLista(expr_lst,t.image,'o');}
+        if(t.image.equals(">"))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.GT);
+        if(t.image.equals(">="))
+        	  SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.GTEQ);
+        if(t.image.equals("<"))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.LS);
+        if(t.image.equals("<="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.LSEQ);
+        if(t.image.equals("=="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.EQ);
+        if(t.image.equals("!="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.DIFF);
+      }
       
     )*
   )
@@ -266,7 +283,7 @@ char expr_mod(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1='
     {
       SemanticActions.verificaTipoMod(tipo1,tipo,t);
       tipo=tipo1;
-      SemanticActions.addItemLista(expr_lst,t.image,'o');}
+      SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.MOD);}
   )*
   {return tipo;}
 }
@@ -275,6 +292,10 @@ char expr_soma(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
   {
     SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
     //tipo=tipo1;
+    if(t.image.equals("+"))
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.ADD);
+      	else
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.SUB);
     SemanticActions.addItemLista(expr_lst,t.image,'o');}
   )*
   {return tipo;}
@@ -284,7 +305,7 @@ char expr_mult(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
     (t=<MULT>|t=<DIV>) tipo1=expr_pow(expr_lst)
     {
       SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
-      tipo=tipo1;
+      //tipo=tipo1;
       if(t.image.equals("*"))
       	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.MULT);
       	else
@@ -431,30 +452,35 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
   {return tipo;}
 }
 //------------------------------if,while e foreach---------------------------------------------
-void ifcmd() throws SemanticException :{}
+Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
 {  	<IF><ABREPAR>expr('_')<FECHAPAR><EOL>
-  	<INDENT>corpo() <DEDENT>(<EOL>)?
-  	(<ELSE><INDENT>corpo()<DEDENT>(<EOL>)?)?
+  	<INDENT>corpo(coms) <DEDENT>(<EOL>)?
+  	(<ELSE><INDENT>corpo(coms)<DEDENT>(<EOL>)?)?
   	<FI>
+  	{ return com; 	}
 }
-void whilecmd() throws SemanticException :{}
+Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
 {  	<WHILE><ABREPAR>expr('_')<FECHAPAR><EOL>
-  			<INDENT>corpo()<DEDENT>(<EOL>)?
+  			<INDENT>corpo(coms)<DEDENT>(<EOL>)?
   			<END>
+  				{ return com; 	}
 }
-void foreach() throws SemanticException:{Token t;char tipo;}
+Comando foreach(LinkedList<Comando> coms) throws SemanticException:{Token t;char tipo;Comando com=new Comando();}
 {  	<FOREACH><ABREPAR> <VAR> <IN> tipo=list(lixo) <FECHAPAR>
-  	<INDENT> corpo() <DEDENT>(<EOL>)?
+  	<INDENT> corpo(coms) <DEDENT>(<EOL>)?
   	<END>
+  		{ return com; 	}
 }
 
 //----------------------------------Entrada e Saida------------------------------------------
-void entrada() throws SemanticException :{}
+Comando entrada(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
 {  	<READ>
   	<ABREPAR>
   					(<STRING><VIRG>)?(<VAR><VIRG>)+
   	<FECHAPAR>
+  		{ return com; 	}
 }
-void saida() throws SemanticException :{}
+Comando saida(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
 {  		<PRINT>				<ABREPAR> 					expr('_') (<VIRG> expr('_'))? 				<FECHAPAR>
+  			{ return com; 	}
 }

@@ -250,7 +250,40 @@ public class SemanticActions {
 	public static Item execOper2(Item oper,Item var1, Item var2,char tipoA)
 	{
 		Item res=new Item();
+		double valor1=0;int valor2=0;String valor3="";
+		ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 		
+		switch(oper.oper)
+		{
+			case MULT:
+				valor1=var1.getValorDouble()*var2.getValorDouble();
+				break;
+			case DIV:
+				valor1=var2.getValorDouble()/var1.getValorDouble();
+				break;
+			case ADD:
+				valor1=var1.getValorDouble()+var2.getValorDouble();
+				break;
+			case SUB:
+				valor1=var2.getValorDouble()-var1.getValorDouble();
+				break;
+			case CONCAT:
+				if(var1.isString() && var2.isString())
+				{
+					valor3=var1+""+var2;
+					res=new Item('s',valor3);
+				}else
+				{
+					if(var1.isList()||var2.isList())
+					{
+						
+						valorlst.addAll(var2.getValorList());
+						valorlst.addAll(var1.getValorList());
+						res=new Item(tipoA,valor3);
+					}
+				}
+				break;
+		}
 		System.out.println(var2+""+oper+""+var1+" = "+res);
 		return res;
 	}
