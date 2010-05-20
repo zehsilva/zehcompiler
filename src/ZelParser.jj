@@ -296,7 +296,8 @@ char expr_soma(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
       	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.ADD);
       	else
       	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.SUB);
-    SemanticActions.addItemLista(expr_lst,t.image,'o');}
+    //SemanticActions.addItemLista(expr_lst,t.image,'o');
+    }
   )*
   {return tipo;}
 }

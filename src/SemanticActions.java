@@ -189,7 +189,11 @@ public class SemanticActions {
 	
 	public static void addItemLista(ArrayDeque<Item> lst,ArrayDeque<Item> valor,char tipo)
 	{
-		Item it=new Item(tipo,valor);
+		Item it=null;
+		if(valor.size()>1)
+			it=new Item(tipo,valor);
+		if(valor.size()==1)
+			it=new Item(tipo,valor.getFirst());
 		lst.offerFirst(it);
 	}
 	public static Item execOper(Item oper,Item var1, Item var2,char tipoA)
@@ -247,44 +251,53 @@ public class SemanticActions {
 		System.out.println(var2+""+oper+""+var1+" = "+res);
 		return res;
 	}
-	public static Item execOper2(Item oper,Item var1, Item var2,char tipoA)
+	public static Item execOper1(Item oper,Item var1, Item var2,char tipoA)
 	{
 		Item res=new Item();
-		double valor1=0;int valor2=0;String valor3="";
+		double valor1=0;String valor3="";
+		boolean val1=false;
 		ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 		
 		switch(oper.oper)
 		{
 			case MULT:
 				valor1=var1.getValorDouble()*var2.getValorDouble();
+				val1=true;
 				break;
 			case DIV:
 				valor1=var2.getValorDouble()/var1.getValorDouble();
+				val1=true;
 				break;
 			case ADD:
 				valor1=var1.getValorDouble()+var2.getValorDouble();
+				val1=true;
 				break;
 			case SUB:
 				valor1=var2.getValorDouble()-var1.getValorDouble();
+				val1=true;
 				break;
 			case CONCAT:
+				//System.out.println(var2+""+oper+""+var1+" = "+res);
 				if(var1.isString() && var2.isString())
 				{
-					valor3=var1+""+var2;
+					//System.out.println("String Concat");
+					valor3=var2.valor+""+var1.valor;
 					res=new Item('s',valor3);
+					//System.out.println("String Concat: var1 "+var1.valor+" var2 "+var2.valor);
 				}else
 				{
 					if(var1.isList()||var2.isList())
 					{
-						
 						valorlst.addAll(var2.getValorList());
 						valorlst.addAll(var1.getValorList());
-						res=new Item(tipoA,valor3);
+						res=new Item(tipoA,valorlst);
 					}
 				}
 				break;
 		}
-		System.out.println(var2+""+oper+""+var1+" = "+res);
+		if(val1)
+			res=new Item(tipoA,valor1);
+		System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
 		return res;
 	}
 	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst,char tipoA)
@@ -296,20 +309,23 @@ public class SemanticActions {
 		while(cont)
 		{
 			it1=lst.pollLast();
+			System.out.println("lst = "+lst);
 			try{
 				if(it1.isOper())
 				{
-					System.out.println(it1);
+					System.out.println(it1+" "+it1.oper);
 					it2=stk.pollFirst();
 					it3=stk.pollFirst();
-					stk.offerFirst(execOper(it1,it2,it3,tipoA));
+					stk.offerFirst(execOper1(it1,it2,it3,tipoA));
 				}else
 				{
+					System.out.println("nop: "+ it1);
 					if(it1.isVar())
 						cont=false;
 					else
 						stk.offerFirst(it1);
 				}
+				it1=null;
 			}catch(Exception E)
 			{
 				cont=false;

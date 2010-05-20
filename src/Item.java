@@ -22,8 +22,12 @@ public class Item {
 		valor=s;
 		if(t=='s')
 		{
-			valor=s.split("\"")[1];
+			if(s.charAt(0)=='"' && s.charAt(s.length()-1)=='"' )
+			{
+				valor=s.substring(1, s.length()-1);
+			}
 			stringToList(valor);
+			System.out.println("str = "+valor+"; list item: "+this.valorlst);
 		}
 	}
 	public Item(char t,String s,op oper)
@@ -36,6 +40,7 @@ public class Item {
 			valor=s.split("\"")[1];
 			stringToList(valor);
 		}
+		this.oper=oper;
 	}
 	public void stringToList(String s)
 	{
