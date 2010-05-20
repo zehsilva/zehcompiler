@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 public class SemanticActions {
-
+	
 	
 	public static char testaVar(HashMap<String,Simbolo> tab,Token t) throws SemanticException
 	{
@@ -162,11 +162,31 @@ public class SemanticActions {
 		}
 		lst.offerFirst(it);
 	}
+	public static void addItemLista(ArrayDeque<Item> lst,String valor,char tipo,Item.op ops)
+	{
+		Item it=null;
+		if('c'==tipo)
+			it=new Item(tipo,valor.charAt(1));
+		else
+		{
+			if('i'==tipo)
+				it=new Item(tipo,Integer.parseInt(valor));
+			else
+			{
+				if('r'==tipo)
+					it=new Item(tipo,Double.parseDouble(valor));
+				else
+					it=new Item(tipo,valor,ops);
+			}
+		}
+		lst.offerFirst(it);
+	}
 	public static void addItemLista(ArrayDeque<Item> lst,Object valor,char tipo)
 	{
 		Item it=new Item(tipo,valor);
 		lst.offerFirst(it);
 	}
+	
 	public static void addItemLista(ArrayDeque<Item> lst,ArrayDeque<Item> valor,char tipo)
 	{
 		Item it=new Item(tipo,valor);
@@ -179,36 +199,59 @@ public class SemanticActions {
 			;
 		else
 		{
-			double valor1=0;int valor2=0;
-			if(var1.isReal()||var2.isReal()||tipoA=='r')
+			double valor1=0;int valor2=0;String valor3="";
+			if(var1.isString() && var2.isString())
 			{
-				valor1=0;
-				if(oper.getValor().equals("+"))
-					valor1=var1.getValorDouble()+var2.getValorDouble();
-				if(oper.getValor().equals("*"))
-					valor1=var1.getValorDouble()*var2.getValorDouble();
-				if(oper.getValor().equals("/"))
-					valor1=var2.getValorDouble()/var1.getValorDouble();
-				if(oper.getValor().equals("-"))
-					valor1=var2.getValorDouble()-var1.getValorDouble();
-				res=new Item('r',valor1);
-			}
-			else
+				valor3=var1+""+var2;
+				res=new Item('s',valor3);
+			}else
 			{
-				if(oper.getValor().equals("+"))
-					valor2=var1.getValorInt()+var2.getValorInt();
-				if(oper.getValor().equals("*"))
-					valor2=var1.getValorInt()*var2.getValorInt();
-				if(oper.getValor().equals("/"))
-					valor2=var2.getValorInt()/var1.getValorInt();
-				if(oper.getValor().equals("-"))
-					valor2=var2.getValorInt()-var1.getValorInt();
-				if(oper.getValor().equals("%"))
-					valor2=var2.getValorInt()%var1.getValorInt();
-				res=new Item('i',valor2);
+				if(var1.isList()||var2.isList())
+				{
+					ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
+					valorlst.addAll(var2.getValorList());
+					valorlst.addAll(var1.getValorList());
+					res=new Item(tipoA,valor3);
+				}else
+				{
+					if(var1.isReal()||var2.isReal()||tipoA=='r')
+					{
+						valor1=0;
+						if(oper.getValor().equals("+"))
+							valor1=var1.getValorDouble()+var2.getValorDouble();
+						if(oper.getValor().equals("*"))
+							valor1=var1.getValorDouble()*var2.getValorDouble();
+						if(oper.getValor().equals("/"))
+							valor1=var2.getValorDouble()/var1.getValorDouble();
+						if(oper.getValor().equals("-"))
+							valor1=var2.getValorDouble()-var1.getValorDouble();
+						res=new Item('r',valor1);
+					}
+					else
+					{
+						if(oper.getValor().equals("+"))
+							valor2=var1.getValorInt()+var2.getValorInt();
+						if(oper.getValor().equals("*"))
+							valor2=var1.getValorInt()*var2.getValorInt();
+						if(oper.getValor().equals("/"))
+							valor2=var2.getValorInt()/var1.getValorInt();
+						if(oper.getValor().equals("-"))
+							valor2=var2.getValorInt()-var1.getValorInt();
+						if(oper.getValor().equals("%"))
+							valor2=var2.getValorInt()%var1.getValorInt();
+						res=new Item('i',valor2);
+					}
+				}
 			}
 		}
-		//System.out.println("res = "+res);
+		System.out.println(var2+""+oper+""+var1+" = "+res);
+		return res;
+	}
+	public static Item execOper2(Item oper,Item var1, Item var2,char tipoA)
+	{
+		Item res=new Item();
+		
+		System.out.println(var2+""+oper+""+var1+" = "+res);
 		return res;
 	}
 	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst,char tipoA)
@@ -220,33 +263,26 @@ public class SemanticActions {
 		while(cont)
 		{
 			it1=lst.pollLast();
-			
-			
 			try{
 				if(it1.isOper())
 				{
 					System.out.println(it1);
-					while(stk.size()>1)
-					{
-						it2=stk.pollFirst();
-						it3=stk.pollFirst();
-						stk.offerFirst(execOper(it1,it2,it3,tipoA));
-						
-					}
-						System.out.println(it1);
-						it2=stk.pollFirst();
-						lst.offerLast(it2);
-						System.out.println("lst = "+lst);
-						cont=false;
+					it2=stk.pollFirst();
+					it3=stk.pollFirst();
+					stk.offerFirst(execOper(it1,it2,it3,tipoA));
 				}else
 				{
-					stk.offerFirst(it1);
+					if(it1.isVar())
+						cont=false;
+					else
+						stk.offerFirst(it1);
 				}
 			}catch(Exception E)
 			{
 				cont=false;
 			}
 		}
+		lst.addAll(stk);
 		return lst;
 	}
 }

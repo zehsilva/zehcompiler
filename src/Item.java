@@ -6,7 +6,9 @@ public class Item {
 	public Object valorobj;
 	public double valordouble;
 	public int valorint;
-	public ArrayDeque<Item> valorlst;
+	static enum op{ADD,SUB,MULT,DIV,MOD,CONCAT,EXP,NOT,AND,NAND,XOR,OR,NOR,DOLLAR,ARROBA,NONE};
+	op oper=op.NONE;
+	public ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 	public Item()
 	{
 		this.valor="";
@@ -15,7 +17,35 @@ public class Item {
 	public Item(char t,String s)
 	{
 		tipo=t;
+		
 		valor=s;
+		if(t=='s')
+		{
+			valor=s.split("\"")[1];
+			stringToList(valor);
+		}
+	}
+	public Item(char t,String s,op oper)
+	{
+		tipo=t;
+		
+		valor=s;
+		if(t=='s')
+		{
+			valor=s.split("\"")[1];
+			stringToList(valor);
+		}
+	}
+	public void stringToList(String s)
+	{
+		int i;
+		try{
+		for(i=0;i<s.length();i++)
+			valorlst.offer(new Item('c',s.charAt(i)));
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	public Item(char t,ArrayDeque<Item> s)
 	{

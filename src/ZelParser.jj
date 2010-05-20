@@ -285,7 +285,10 @@ char expr_mult(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
     {
       SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
       tipo=tipo1;
-      SemanticActions.addItemLista(expr_lst,t.image,'o');
+      if(t.image.equals("*"))
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.MULT);
+      	else
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.DIV);
     }
   )*
   {return tipo;}
@@ -295,7 +298,7 @@ char expr_pow(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,t
   (
     t=<EXP> tipo1=expr_pow(expr_lst)
     {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);
-    SemanticActions.addItemLista(expr_lst,t.image,'o');}
+    SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.EXP);}
   )?
   {return tipo;}
 }
@@ -306,10 +309,10 @@ char termo_not(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,
     {
       tipo='i';
       if(counter%2==0)
-      {        SemanticActions.addItemLista(expr_lst,t.image,'o');
-        SemanticActions.addItemLista(expr_lst,t.image,'o');
+      {        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
       }else
-        SemanticActions.addItemLista(expr_lst,t.image,'o');
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
     }
     |tipo=termo_concat(expr_lst)
   )
@@ -321,7 +324,7 @@ char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;
     t=<PNT> tipo1=termo(expr_lst)
     {
       SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';
-      SemanticActions.addItemLista(expr_lst,".",'o');
+      SemanticActions.addItemLista(expr_lst,".",'o',Item.op.CONCAT);
     }
   )*
   {return tipo;}
