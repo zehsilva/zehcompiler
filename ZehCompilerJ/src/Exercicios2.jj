@@ -1,0 +1,48 @@
+options { 
+  JDK_VERSION = "1.5"; 
+  DEBUG_PARSER = false; 
+  DEBUG_TOKEN_MANAGER = false; 
+} 
+PARSER_BEGIN(Exercicio2) 
+import java.io.*; 
+public class Exercicio2{ 
+   public static void main(String args[])  throws ParseException  { 
+      Exercicio2 analisador = null; 
+      try { 
+         analisador = new Exercicio2(new FileInputStream("prog_fonte.my")); 
+         analisador.inicio(); 
+      } 
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage()); 
+      } 
+   } 
+} 
+PARSER_END(Exercicio2) 
+  
+SKIP : { " " | "\t" | "\r" | "\n" } 
+  
+TOKEN [IGNORE_CASE] : { 
+      < EX1A:   "V"["0"-"9"]["0"-"9"]"-"["A"-"z"](["A"-"z"]|["0"-"9"])* >
+} 
+TOKEN : { 
+      < String: "\""(~["\""])*"\"" > |
+      < NUM : (["0"-"9"])+ > |
+      < ROMANO:
+      ("M")?("M")?("M")?
+      			(("D")?("C")?("C")?("C")?|"C"["M","D"])?
+      			(("L")?("X")?("X")?("X")?|"X"["C","L"])?
+      			(("V")?("I")?("I")?("I")?|"I"["V","X"])? >
+}
+
+JAVACODE void inicio() 
+{ 
+   Token t; 
+   do { 
+      t = getNextToken(); 
+      System.out.println(tokenImage[t.kind]+"\t"+t.image);  
+   } 
+   while(t.kind != EOF);  
+} 

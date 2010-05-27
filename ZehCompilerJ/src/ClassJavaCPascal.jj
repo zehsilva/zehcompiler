@@ -1,0 +1,57 @@
+options { 
+  JDK_VERSION = "1.5"; 
+  DEBUG_PARSER = false; 
+  DEBUG_TOKEN_MANAGER = false; 
+} 
+PARSER_BEGIN(JavaCPascal) 
+import java.io.*; 
+public class JavaCPascal {
+      static int numeros=0;
+      static int operadores=0;
+   public static void main(String args[])  throws ParseException  { 
+      JavaCPascal analisador = null;
+
+      try { 
+         analisador = new JavaCPascal(new FileInputStream("prog_fonte.my")); 
+         analisador.inicio();
+         System.out.println("Números: "+numeros+"\nOperadores:"+operadores);
+      } 
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage()); 
+      } 
+   } 
+} 
+PARSER_END(JavaCPascal) 
+  
+SKIP : { " " | "\t" | "\r" | "\n" } 
+  
+TOKEN : { 
+      
+      < REAL : ("-"|"+")?(["0"-"9"])*"."(["0"-"9"])+ > |
+      < OPER_REL_JAVA_C_PASCAL: ("<"|">")("=")? > |
+      < OPER_REL_JAVA_C: ["=","!"]"=" > |
+      < OPER_REL_PASCAL: "="|"<>" > |
+      < OPER_LOG_JAVA_C: "!"|"||"|"&&" > |
+      < OPER_LOG_PASCAL: "or"|"and"|"not" > |
+      < HEX: "0x"(["0"-"9"]|["A"-"F"]|["a"-"f"])+ > |
+      < ABRE_PAR: "(" > |
+      < FECHA_PAR: ")" >|
+      < VAR:   ["A"-"z"](["A"-"z"]|["0"-"9"])* >
+}
+
+void inicio() : { Token t;}
+{
+  (    t=< REAL > {numeros++; System.out.println(t.image+" - número real");}
+  | t=< HEX >{numeros++; System.out.println(t.image+" - número hexadecimal do Java/C");}
+  | t=< OPER_REL_JAVA_C_PASCAL >{operadores++; System.out.println(t.image+" - operador relacional do Java/C/Pascal");}
+  | t=< OPER_REL_JAVA_C >{operadores++; System.out.println(t.image+" - operador relacional do Java/C");}
+  | t=< OPER_REL_PASCAL >{operadores++; System.out.println(t.image+" - operador relacional do Pascal");}
+  | t=< OPER_LOG_JAVA_C >{operadores++; System.out.println(t.image+" - operador lógico do Java/C");}
+  | t=< OPER_LOG_PASCAL>{operadores++; System.out.println(t.image+" - operador lógico do Pascal");}
+  | t=< ABRE_PAR >{System.out.println(t.image+" - Abre parentesis");}
+  | t=< FECHA_PAR >{System.out.println(t.image+" - Abre parentesis");}
+  | t=< VAR >{System.out.println(t.image+" - Variável");})*< EOF >
+}

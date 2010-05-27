@@ -1,0 +1,74 @@
+/*  CompiladorExemplo.jj  -  Analisador Sintático */ 
+options { 
+  JDK_VERSION = "1.5"; 
+  DEBUG_PARSER = false; 
+  DEBUG_TOKEN_MANAGER = false; 
+} 
+PARSER_BEGIN(CalcRomano) 
+import java.io.*; 
+public class CalcRomano { 
+   public static void main(String args[])  throws ParseException  { 
+      CalcRomano analisador = null; 
+      try { 
+         analisador = new CalcRomano(new FileInputStream("prog_fonte.my"));
+          
+         analisador.inicio(); 
+      } 
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage()); 
+      } 
+      catch(ParseException e) { 
+         System.out.println("Erro sintático\n" + e.getMessage()); 
+      } 
+   } 
+} 
+PARSER_END(CalcRomano) 
+  
+SKIP : { " " | "\t" | "\r" | "\n" } 
+  
+TOKEN [IGNORE_CASE] : { 
+      <EXIBE: "exibe" > 
+} 
+TOKEN : {
+      < IDENT:   (["a"-"z"])+ > | 
+      < ATRIB:   ":=" >         |  
+      < ADICAO:  "+" >          | 
+      < PT_VIRG: ";" >          |
+       < NUM_ARAB: (["0"-"9"])+> |
+      < NUM_ROMANO:
+      ("M"("M")?("M")?)?
+      			(("D")?("C")?("C")?("C")?|"C"["M","D"])?
+      			(("L")?("X")?("X")?("X")?|"X"["C","L"])?
+      			(("V")?("I")?("I")?("I")?|"I"["V","X"])? >  
+}                 
+void inicio() : {}  
+{ 
+   ( linhaComando() )* <EOF> 
+} 
+void linhaComando() : {}   
+{ 
+      comando() <PT_VIRG> 
+} 
+void comando() : {}   
+{ 
+      exibe() | atribui() 
+} 
+void exibe() : {}  
+{ 
+      <EXIBE> <IDENT> 
+} 
+void atribui() : {}   
+{ 
+      <IDENT> <ATRIB> expressao() 
+}
+void expressao() : {}   
+{ 
+      fator() ( <ADICAO> fator() )* 
+} 
+void fator() : {}   
+{ 
+      <IDENT> | <NUM_ROMANO> | <NUM_ARAB>
+}
