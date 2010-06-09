@@ -3,14 +3,12 @@ import java.util.ArrayDeque;
 
 
 public class ComandoEntrada extends Comando {
-
-	public ComandoEntrada() {
+	public ArrayDeque<String> listaVar=null;
+	public ComandoEntrada(String msg,ArrayDeque<String> vars) {
 		// TODO Auto-generated constructor stub
-	}
-
-	public ComandoEntrada(comtype tipo, String var, ArrayDeque exp) {
-		super(tipo, var, exp);
-		// TODO Auto-generated constructor stub
+		this.comando=comtype.ENTRADA;
+		this.str=msg;
+		this.listaVar=vars;
 	}
 
 }

@@ -1,21 +1,30 @@
 import java.util.ArrayDeque;
-import java.util.LinkedList;
+
 
 public class Comando {
-	static enum comtype {IF,FOR,PRINT,WHILE,ATRIB,ENTRADA,NONE};
+	static enum comtype {IF,FOR,PRINT,WHILE,ATRIB,ENTRADA,NONE,DECL};
 	comtype comando=comtype.NONE;
-	String var="";
-	public ArrayDeque<String> listaVar=new ArrayDeque<String>();
-	public ArrayDeque<Item> expr1=new ArrayDeque<Item>();
+	String str=null;
+	
+	
+	public ArrayDeque<Item> expr1=null;
 	
 	public Comando()
-	{ 
+	{
 		comando=comtype.NONE;
 	}
-	public Comando(comtype tipo,String var,ArrayDeque exp)
+	public Comando(comtype tipo,ArrayDeque<Item> exp)
 	{ 
 		comando=tipo;
-		this.var=var;
 		this.expr1=exp;
 	}
+	public Comando(String var,ArrayDeque<Item> exp)
+	/** este daqui serve para o comando de atribuicao
+	**/
+	{ 
+		comando=comtype.ATRIB;
+		this.str=var;
+		this.expr1=exp;
+	}
+	
 }

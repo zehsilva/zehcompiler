@@ -20,6 +20,7 @@ public class ZelParser{
 ******/
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
   public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
+  public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
       System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
       try {
@@ -121,13 +122,14 @@ TOKEN : {
       < INDENT: "{" >|
       < DEDENT: "}" >|
       < STRING: "\""(~["\""])*"\"" >
-}void inicio() throws SemanticException:{LinkedList<Comando> com=new LinkedList<Comando>();}
+}void inicio() throws SemanticException:{}
 {
-  corpo(com)<EOF>
+  corpo()<EOF>
 }
-void corpo(LinkedList<Comando> com) throws SemanticException :{}
-{
-    (decl())? cmds(com)
+LinkedList<Comando> corpo() throws SemanticException :{LinkedList<Comando> com=new LinkedList<Comando>();}
+{    (decl())? cmds(com)
+  {    return com;
+  }
 }
 
 void decl() throws SemanticException:{}
@@ -145,6 +147,7 @@ void vartype() throws SemanticException :
      <ATRIB> tipo2=literal(lst)     {
        SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
        s.setInicializada();
+       SemanticActions.addCmdAtrib(cmdlst,t.image,lst);
      }
    )?
    (
@@ -159,6 +162,7 @@ void vartype() throws SemanticException :
        {
          SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
          s.setInicializada();
+         SemanticActions.addCmdAtrib(cmdlst,t.image,lst);
        }
      )?
    )*
@@ -187,7 +191,7 @@ void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comand
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
-Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';}
+Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 {  (
     LOOKAHEAD(2)
     t=<VAR>
@@ -204,18 +208,20 @@ Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=ne
     }
     <ATRIB>
   )+
-  tipo2=expr(tipo)
+  {    lst=new ArrayDeque<Item>();
+  }
+  tipo2=expr(tipo,lst)
   {
     SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
     return com;
   }
 }
 
-char expr(char tipoAtrib) throws SemanticException :{char tipo;ArrayDeque<Item> lst=new ArrayDeque<Item>();}{  tipo=expr_aux(lst)
+char expr(char tipoAtrib,ArrayDeque<Item> lst) throws SemanticException :{char tipo;}{  tipo=expr_aux(lst)
   {
-    System.out.println(lst);
+    //System.out.println(lst);
     SemanticActions.otimizaExp(lst,tipoAtrib);
-    System.out.println(lst);
+    //System.out.println(lst);
     return tipo; }
 }
 char expr_aux(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';}
@@ -453,35 +459,59 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
   {return tipo;}
 }
 //------------------------------if,while e foreach---------------------------------------------
-Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
-{  	<IF><ABREPAR>expr('_')<FECHAPAR><EOL>
-  	<INDENT>corpo(coms) <DEDENT>(<EOL>)?
-  	(<ELSE><INDENT>corpo(coms)<DEDENT>(<EOL>)?)?
+Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
+{ComandoIF com;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
+LinkedList<Comando> coms2=new LinkedList<Comando>();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{
+    	<IF><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
+  	<INDENT>coms1=corpo() <DEDENT>(<EOL>)?
+  {com=new ComandoIF(lst,coms1);}	
+  	(
+  	  <ELSE><INDENT>coms2=corpo()<DEDENT>(<EOL>)?
+  	  {com.setCorpoElse(coms2);}
+  	)?
   	<FI>
   	{ return com; 	}
 }
-Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
-{  	<WHILE><ABREPAR>expr('_')<FECHAPAR><EOL>
-  			<INDENT>corpo(coms)<DEDENT>(<EOL>)?
+Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
+{Comando com=new Comando();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  	<WHILE><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
+  			<INDENT>corpo()<DEDENT>(<EOL>)?
   			<END>
   				{ return com; 	}
 }
-Comando foreach(LinkedList<Comando> coms) throws SemanticException:{Token t;char tipo;Comando com=new Comando();}
-{  	<FOREACH><ABREPAR> <VAR> <IN> tipo=list(lixo) <FECHAPAR>
-  	<INDENT> corpo(coms) <DEDENT>(<EOL>)?
+Comando foreach(LinkedList<Comando> coms) throws SemanticException:
+{Token t;char tipo;Comando com=new Comando();
+LinkedList<Comando> comsnovo=new LinkedList<Comando>();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  	<FOREACH><ABREPAR> <VAR> <IN> tipo=list(lst) <FECHAPAR>
+  	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
   	<END>
   		{ return com; 	}
 }
 
 //----------------------------------Entrada e Saida------------------------------------------
-Comando entrada(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
+Comando entrada(LinkedList<Comando> coms) throws SemanticException :
+{Comando com=new Comando();}
 {  	<READ>
   	<ABREPAR>
   					(<STRING><VIRG>)?(<VAR><VIRG>)+
   	<FECHAPAR>
   		{ return com; 	}
 }
-Comando saida(LinkedList<Comando> coms) throws SemanticException :{Comando com=new Comando();}
-{  		<PRINT>				<ABREPAR> 					expr('_') (<VIRG> expr('_'))? 				<FECHAPAR>
+Comando saida(LinkedList<Comando> coms) throws SemanticException :
+{Comando com=new Comando();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  		<PRINT>
+  		<ABREPAR>
+  		expr('_',lst)
+  		(
+  		  {lst=new ArrayDeque<Item>();}
+  		  <VIRG> expr('_',lst)
+  		)?
+  						<FECHAPAR>
   			{ return com; 	}
 }

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.LinkedList;
 public class SemanticActions {
 	
 	
@@ -334,4 +335,25 @@ public class SemanticActions {
 		lst.addAll(stk);
 		return lst;
 	}
+	public static void addCmdAtrib(LinkedList<Comando> cmdlst, String var, ArrayDeque<Item> value)
+	{
+		Comando cmd=new Comando(var,value);
+		cmdlst.add(cmd);
+	}
+	public static void addCmdLoop(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo,Comando.comtype tipo)
+	{
+		ComandoCorpo cmd=new ComandoCorpo(tipo,expr,corpo);
+		cmdlst.add(cmd);
+	}
+	public static void addCmdIf(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo)
+	{
+		ComandoIF cmd=new ComandoIF(expr,corpo);
+		cmdlst.add(cmd);
+	}
+	public static void addCmdIfElse(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo, LinkedList<Comando> corpo2)
+	{
+		ComandoIF cmd=new ComandoIF(expr,corpo,corpo2);
+		cmdlst.add(cmd);
+	}
+	
 }
