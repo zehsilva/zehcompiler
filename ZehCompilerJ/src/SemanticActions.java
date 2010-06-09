@@ -252,41 +252,125 @@ public class SemanticActions {
 		System.out.println(var2+""+oper+""+var1+" = "+res);
 		return res;
 	}
+	public static int execNot(int v)
+	{
+		if(v==0)
+			return 1;
+		return 0;
+	}
 	public static Item execOper1(Item oper,Item var1, Item var2,char tipoA)
 	{
 		Item res=new Item();
+		int valint=0;
 		double valor1=0;String valor3="";
 		boolean val1=false;
 		ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 		
 		switch(oper.oper)
 		{
+		
 			case AND:
 				if(var2.getValorInt()==0 || var1.getValorInt()==0)
 					valor1=0;
 				else
 					valor1=1;
 				val1=true;
-			case MAIOR:
+				break;
+			case NAND:
+				if(var2.getValorInt()==0 || var1.getValorInt()==0)
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case OR:
+				if(var2.getValorInt()!=0 || var1.getValorInt()!=0)
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case NOR:
+				if(var2.getValorInt()!=0 || var1.getValorInt()!=0)
+					valor1=0;
+				else
+					valor1=1;
+				val1=true;
+				break;
+			case XOR:
+				if( (var2.getValorInt()==var1.getValorInt() && var2.getValorInt()==0)
+					|| (var2.getValorInt()!=0 && var1.getValorInt()!=0) )
+					valor1=0;
+				else
+					valor1=1;
+				val1=true;
+				break;
+			case GT:
+				//System.out.println(var2.getValorInt() +">"+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
 				if(var2.getValorDouble() > var1.getValorDouble())
 					valor1=1;
 				else
 					valor1=0;
 				val1=true;
+				break;
+			case LS:
+				//System.out.println(var2.getValorInt() +"<"+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
+				if(var2.getValorDouble() < var1.getValorDouble())
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case GTEQ:
+				//System.out.println(var2.getValorInt() +">="+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
+				if(var2.getValorDouble() >= var1.getValorDouble())
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case LSEQ:
+				//System.out.println(var2.getValorInt() +"<="+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
+				if(var2.getValorDouble() <= var1.getValorDouble())
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case EQ:
+				//System.out.println(var2.getValorInt() +"=="+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
+				if(Double.compare(var2.getValorDouble(),var1.getValorDouble())==0)
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
+			case DIFF:
+				//System.out.println(var2.getValorInt() +"!="+ var1.getValorInt()+"="+(var2.getValorInt() > var1.getValorInt())); 
+				if(Double.compare(var2.getValorDouble(),var1.getValorDouble())!=0)
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
+				break;
 			case MULT:
 				valor1=var1.getValorDouble()*var2.getValorDouble();
+				valint=var1.getValorInt()*var2.getValorInt();
 				val1=true;
 				break;
 			case DIV:
 				valor1=var2.getValorDouble()/var1.getValorDouble();
+				valint=var2.getValorInt()/var1.getValorInt();
 				val1=true;
 				break;
 			case ADD:
 				valor1=var1.getValorDouble()+var2.getValorDouble();
+				valint=var1.getValorInt()+var2.getValorInt();
 				val1=true;
 				break;
 			case SUB:
 				valor1=var2.getValorDouble()-var1.getValorDouble();
+				valint=var2.getValorInt()-var1.getValorInt();
 				val1=true;
 				break;
 			case CONCAT:
@@ -309,7 +393,10 @@ public class SemanticActions {
 				break;
 		}
 		if(val1)
+		{
 			res=new Item(tipoA,valor1);
+			res.valorint=valint;
+		}
 		System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
 		return res;
 	}
@@ -328,8 +415,22 @@ public class SemanticActions {
 				{
 					System.out.println(it1+" "+it1.oper);
 					it2=stk.pollFirst();
-					it3=stk.pollFirst();
-					stk.offerFirst(execOper1(it1,it2,it3,tipoA));
+					switch(it1.oper)
+					{
+						case DOLLAR:
+							it2.tipo='s';
+							stk.offerFirst(it2);
+							break;
+						case ARROBA:
+							it2.valordouble=Double.parseDouble(it2.valor);
+							it2.tipo='r';
+							stk.offerFirst(it2);
+							break;
+						default:
+							it3=stk.pollFirst();
+							stk.offerFirst(execOper1(it1,it2,it3,tipoA));
+							break;
+					}
 				}else
 				{
 					System.out.println("nop: "+ it1);
