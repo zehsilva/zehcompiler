@@ -21,6 +21,7 @@ public class ZelParser{
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
   public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
   public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
+  public static int stackLen=0;
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
       System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
       try {
@@ -243,12 +244,14 @@ char expr_aux(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char
       SemanticActions.addItemLista(expr_lst,t.image,'o');})*
   {return tipo; }
 }
-char expr_and(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';}{  tipo=expr_bool(expr_lst)
+char expr_and(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';Item.op oper;}{  tipo=expr_bool(expr_lst)
   (
-    (t=<AND>|t=<NAND>) expr_bool(expr_lst)
+    ( t=<AND> {oper=Item.op.AND;}  	   |t=<NAND> {oper=Item.op.NAND;} 
+  	  ) expr_bool(expr_lst)
     {
+      
       tipo='i';
-      SemanticActions.addItemLista(expr_lst,t.image,'o');
+      SemanticActions.addItemLista(expr_lst,t.image,'o',oper);
     }
   )*
   {return tipo;}
@@ -470,13 +473,17 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
 //------------------------------if,while e foreach---------------------------------------------
 Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
 {ComandoIF com;
+char tipo;
 LinkedList<Comando> coms1=new LinkedList<Comando>();
 LinkedList<Comando> coms2=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 {
-    	<IF><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
+    	<IF><ABREPAR>tipo=expr('_',lst)<FECHAPAR><EOL>
   	<INDENT>coms1=corpo() <DEDENT>(<EOL>)?
-  {com=new ComandoIF(lst,coms1);}	
+  {
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoIF(lst,coms1);
+  }	
   	(
   	  <ELSE><INDENT>coms2=corpo()<DEDENT>(<EOL>)?
   	  {com.setCorpoElse(coms2);}

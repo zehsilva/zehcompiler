@@ -261,6 +261,18 @@ public class SemanticActions {
 		
 		switch(oper.oper)
 		{
+			case AND:
+				if(var2.getValorInt()==0 || var1.getValorInt()==0)
+					valor1=0;
+				else
+					valor1=1;
+				val1=true;
+			case MAIOR:
+				if(var2.getValorDouble() > var1.getValorDouble())
+					valor1=1;
+				else
+					valor1=0;
+				val1=true;
 			case MULT:
 				valor1=var1.getValorDouble()*var2.getValorDouble();
 				val1=true;
@@ -301,7 +313,7 @@ public class SemanticActions {
 		System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
 		return res;
 	}
-	public static ArrayDeque<Item> otimizaExp(ArrayDeque<Item> lst,char tipoA)
+	public static int otimizaExp(ArrayDeque<Item> lst,char tipoA)
 	{
 		ArrayDeque<Item> stk=new ArrayDeque<Item>();
 		Item it1,it2,it3;
@@ -323,8 +335,7 @@ public class SemanticActions {
 					System.out.println("nop: "+ it1);
 					if(it1.isVar())
 						cont=false;
-					else
-						stk.offerFirst(it1);
+					stk.offerFirst(it1);
 				}
 				it1=null;
 			}catch(Exception E)
@@ -332,8 +343,10 @@ public class SemanticActions {
 				cont=false;
 			}
 		}
+		
 		lst.addAll(stk);
-		return lst;
+		System.out.println("lstfinal = "+lst);
+		return 1;
 	}
 	public static void addCmdAtrib(LinkedList<Comando> cmdlst, String var, ArrayDeque<Item> value)
 	{
@@ -354,5 +367,11 @@ public class SemanticActions {
 	{
 		ComandoIF cmd=new ComandoIF(expr,corpo,corpo2);
 		cmdlst.add(cmd);
+	}
+	public static int tamanhoMaxPilha(ArrayDeque<Item> expr, int tamAnt)
+	{
+		int t=0;
+		
+		return t;
 	}
 }

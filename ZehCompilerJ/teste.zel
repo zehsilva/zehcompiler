@@ -3,6 +3,7 @@ string d;
 
 
 d="asdasd"."b";
+a=1 and 0
 
 !!d="asda"."oi".['a','b','c'];
 !!a= 2+5*7/8
