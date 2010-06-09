@@ -13,6 +13,11 @@ public class Comando {
 	{
 		comando=comtype.NONE;
 	}
+	public Comando(String var)
+	{
+		comando=comtype.ATRIB;
+		str=var;
+	}
 	public Comando(comtype tipo,ArrayDeque<Item> exp)
 	{ 
 		comando=tipo;
@@ -26,5 +31,8 @@ public class Comando {
 		this.str=var;
 		this.expr1=exp;
 	}
-	
+	public void setExpr(ArrayDeque<Item> exp)
+	{
+		this.expr1=exp;
+	}
 }

@@ -355,5 +355,4 @@ public class SemanticActions {
 		ComandoIF cmd=new ComandoIF(expr,corpo,corpo2);
 		cmdlst.add(cmd);
 	}
-	
 }

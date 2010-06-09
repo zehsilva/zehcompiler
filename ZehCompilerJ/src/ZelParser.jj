@@ -185,13 +185,15 @@ void eoc():{}
 }
 
 void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
-{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms1) | entrada(coms1) | saida(coms1))? eoc() )*
+{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | saida(coms1))? eoc() )*
   {    coms.add(com);
   }
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
-Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+Comando atrib(LinkedList<Comando> coms) throws SemanticException:
+{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';ArrayDeque<Item> lst=new ArrayDeque<Item>();
+LinkedList<Comando> atribs=new LinkedList<Comando>();}
 {  (
     LOOKAHEAD(2)
     t=<VAR>
@@ -205,6 +207,8 @@ Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=ne
       	  tipo2=SemanticActions.testaVar(tab,t);
       	  tipo=tipo2;
       	  SemanticActions.verificaLadoDireito(tipo1,tipo2,t);      	}
+      	com=new Comando(t.image);
+      	atribs.add(com);
     }
     <ATRIB>
   )+
@@ -213,6 +217,11 @@ Comando atrib(LinkedList<Comando> coms) throws SemanticException:{Comando com=ne
   tipo2=expr(tipo,lst)
   {
     SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+    for(Comando c : atribs)
+    {
+      c.setExpr(lst);
+      coms.add(c);
+    }
     return com;
   }
 }
