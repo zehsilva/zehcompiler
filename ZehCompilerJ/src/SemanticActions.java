@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -353,6 +352,9 @@ public class SemanticActions {
 					valor1=0;
 				val1=true;
 				break;
+			case MOD:
+				valint=var2.getValorInt()%var1.getValorInt();
+				valor1=(double)valint;
 			case MULT:
 				valor1=var1.getValorDouble()*var2.getValorDouble();
 				valint=var1.getValorInt()*var2.getValorInt();
@@ -394,6 +396,9 @@ public class SemanticActions {
 		}
 		if(val1)
 		{
+			if(var1.isReal()||var2.isReal())
+				tipoA='r';
+			
 			res=new Item(tipoA,valor1);
 			res.valorint=valint;
 		}
@@ -472,7 +477,19 @@ public class SemanticActions {
 	public static int tamanhoMaxPilha(ArrayDeque<Item> expr, int tamAnt)
 	{
 		int t=0;
-		
+		int nant=0;
+		for(Item i:expr)
+		{
+			System.out.print(i.valorint+" ");
+			if(i.isOper())
+			{
+				if(nant!=0)
+					t=t-4;
+			}else
+			{
+				t+=2;
+			}
+		}
 		return t;
 	}
 }

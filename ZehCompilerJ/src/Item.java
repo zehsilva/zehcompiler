@@ -153,6 +153,19 @@ public class Item {
 	}
 	public String toString()
 	{
+		String str="";
+		if(tipo=='i')
+			return ""+this.valorint;
+		if(tipo=='r')
+			return ""+this.valordouble;
+		if(tipo=='c')
+			return ""+this.valorchar;
+		if(tipo=='C')
+		{
+			for(Item c:this.valorlst)
+				str=str+c.valorchar;
+			return str;
+		}
 		return this.valor;
 	}
 }
