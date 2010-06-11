@@ -29,7 +29,10 @@ public class ZelParser{
          analisador = new ZelParser(fp);
          cmdlst=inicio();
          System.out.println(tab);
-         CodigoDestino cod=new CodigoDestino(args[0],cmdlst,tab );
+         //String nclass=args[0].split(".")[0];
+         String nclass=args[0].substring(0,args[0].indexOf("."));
+         nclass=Character.toUpperCase(nclass.charAt(0))+nclass.substring(1);
+         CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
          cod.geraCod();
       }  
       catch(FileNotFoundException e) { 

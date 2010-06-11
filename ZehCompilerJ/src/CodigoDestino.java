@@ -24,6 +24,8 @@ public class CodigoDestino {
 		 BufferedWriter arqSaida; 
          try { 
                arqSaida = new BufferedWriter(new FileWriter(arq+".j")); 
+               //arq.indexOf(".");
+               System.out.println(arq);
                arqSaida.write(".source "+arq+".java\r\n"); 
                arqSaida.write(".class public "+arq+"\r\n"); 
                arqSaida.write(".super java/lang/Object\r\n"); 
@@ -72,7 +74,7 @@ public class CodigoDestino {
 							arqSaida.write("dsub \r\n");
 							break;
 						case MULT:
-							arqSaida.write("dmult \r\n");
+							arqSaida.write("dmul \r\n");
 							break;
 						case DIV:
 							arqSaida.write("ddiv \r\n");
@@ -103,7 +105,10 @@ public class CodigoDestino {
 					Simbolo vart=tabela.get(var);
 					int ref= vart.getReferencia();
 					geraExpr(c.expr1,arqSaida);
-					arqSaida.write("dstore_"+ref+" \r\n");		
+					if(ref<=3)
+						arqSaida.write("dstore_"+ref+" \r\n");
+					else
+						arqSaida.write("dstore "+ref+" \r\n");		
 			}
 		}
 	}

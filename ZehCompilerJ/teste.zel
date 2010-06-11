@@ -1,17 +1,7 @@
-vars: int a,b=1;real c
-string d;
+vars: 
 real x,y,w,z; 
-  x = 30-20; 
+  x = 30; 
   y = 15 + x * 12; 
   z = 90 / ((x - 10) * (y * 15 + 20) + 16); 
 
-
-  a= 2.0+5.0*7/8+4-5+a
-
-!!d="asda"."oi".['a','b','c'];
-
-d="asdasd"."b";
-a=1.5 xor 0;
-d=$(1+1)."b";
-print($(1+1))
 
