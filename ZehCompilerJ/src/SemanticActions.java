@@ -1,4 +1,6 @@
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 public class SemanticActions {
@@ -160,7 +162,7 @@ public class SemanticActions {
 					it=new Item(tipo,valor);
 			}
 		}
-		lst.offerFirst(it);
+		lst.offerLast(it);
 	}
 	public static void addItemLista(ArrayDeque<Item> lst,String valor,char tipo,Item.op ops)
 	{
@@ -179,12 +181,12 @@ public class SemanticActions {
 					it=new Item(tipo,valor,ops);
 			}
 		}
-		lst.offerFirst(it);
+		lst.offerLast(it);
 	}
 	public static void addItemLista(ArrayDeque<Item> lst,Object valor,char tipo)
 	{
 		Item it=new Item(tipo,valor);
-		lst.offerFirst(it);
+		lst.offerLast(it);
 	}
 	
 	public static void addItemLista(ArrayDeque<Item> lst,ArrayDeque<Item> valor,char tipo)
@@ -194,7 +196,7 @@ public class SemanticActions {
 			it=new Item(tipo,valor);
 		if(valor.size()==1)
 			it=new Item(tipo,valor.getFirst());
-		lst.offerFirst(it);
+		lst.offerLast(it);
 	}
 	public static Item execOper(Item oper,Item var1, Item var2,char tipoA)
 	{
@@ -273,6 +275,7 @@ public class SemanticActions {
 					valor1=0;
 				else
 					valor1=1;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case NAND:
@@ -280,6 +283,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case OR:
@@ -287,6 +291,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case NOR:
@@ -294,6 +299,7 @@ public class SemanticActions {
 					valor1=0;
 				else
 					valor1=1;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case XOR:
@@ -302,6 +308,7 @@ public class SemanticActions {
 					valor1=0;
 				else
 					valor1=1;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case GT:
@@ -310,6 +317,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case LS:
@@ -318,6 +326,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case GTEQ:
@@ -326,6 +335,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case LSEQ:
@@ -334,6 +344,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case EQ:
@@ -342,6 +353,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case DIFF:
@@ -350,6 +362,7 @@ public class SemanticActions {
 					valor1=1;
 				else
 					valor1=0;
+				valint=(int)valor1;
 				val1=true;
 				break;
 			case MOD:
@@ -413,35 +426,35 @@ public class SemanticActions {
 		
 		while(cont)
 		{
-			it1=lst.pollLast();
-			System.out.println("lst = "+lst);
+			it1=lst.pollFirst();
+			//System.out.println("lst = "+lst);
 			try{
 				if(it1.isOper())
 				{
 					System.out.println(it1+" "+it1.oper);
-					it2=stk.pollFirst();
+					it2=stk.pollLast();
 					switch(it1.oper)
 					{
 						case DOLLAR:
 							it2.tipo='s';
-							stk.offerFirst(it2);
+							stk.offerLast(it2);
 							break;
 						case ARROBA:
 							it2.valordouble=Double.parseDouble(it2.valor);
 							it2.tipo='r';
-							stk.offerFirst(it2);
+							stk.offerLast(it2);
 							break;
 						default:
-							it3=stk.pollFirst();
-							stk.offerFirst(execOper1(it1,it2,it3,tipoA));
+							it3=stk.pollLast();
+							stk.offerLast(execOper1(it1,it2,it3,tipoA));
 							break;
 					}
 				}else
 				{
-					System.out.println("nop: "+ it1);
+					//System.out.println("nop: "+ it1);
 					if(it1.isVar())
 						cont=false;
-					stk.offerFirst(it1);
+					stk.offerLast(it1);
 				}
 				it1=null;
 			}catch(Exception E)
@@ -450,8 +463,10 @@ public class SemanticActions {
 			}
 		}
 		
+		stk.addAll(lst);
+		lst.clear();
 		lst.addAll(stk);
-		System.out.println("lstfinal = "+lst);
+		
 		return 1;
 	}
 	public static void addCmdAtrib(LinkedList<Comando> cmdlst, String var, ArrayDeque<Item> value)
@@ -478,18 +493,30 @@ public class SemanticActions {
 	{
 		int t=0;
 		int nant=0;
-		for(Item i:expr)
+		ArrayList<Item> al;
+		
+		//Collections.reverse(al=new ArrayList<Item>(expr));
+		//System.out.println("rev = "+al);
+		//System.out.print("[ ");
+		for(Item i: expr )
 		{
-			System.out.print(i.valorint+" ");
+			//System.out.print(i);
 			if(i.isOper())
 			{
-				if(nant!=0)
-					t=t-4;
+					t-=2;
 			}else
 			{
 				t+=2;
 			}
+			if(t>tamAnt)
+				tamAnt=t;
+			//System.out.print(" ");
 		}
-		return t;
+		
+		if(t>tamAnt)
+			tamAnt=t;
+		//System.out.print("] ");
+		System.out.println("tamStack= "+tamAnt+"\n");
+		return tamAnt;
 	}
 }

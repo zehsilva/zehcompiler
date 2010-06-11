@@ -35,9 +35,9 @@ public class CodigoDestino {
                arqSaida.write("return\r\n"); 
                arqSaida.write(".end method\r\n"); 
                arqSaida.write(".method public static main([Ljava/lang/String;)V\r\n");  
-               arqSaida.write(".limit stack 4\r\n");    
+               arqSaida.write(".limit stack "+ZelParser.stackLen+"\r\n");    
                arqSaida.write(".limit locals "+limLocal()+"\r\n"); // máximo de variáveis locais (deve ser calculado) 
-               processaCorpo(arqSaida,corpo);
+               processaCorpo(arqSaida);
                arqSaida.write("return\r\n"); 
                arqSaida.write(".end method\r\n"); 
                arqSaida.close(); 
@@ -49,8 +49,25 @@ public class CodigoDestino {
                System.out.println(e.getMessage()); 
          }
 	}
-	public static void processaCorpo(BufferedWriter arqSaida,LinkedList<Comando> coms)
+	public static void geraExpr(ArrayDeque<Item> expr)
 	{
-		;
+		
+	}
+	public static void processaCorpo(BufferedWriter arqSaida)
+	{
+		String strcorpo="";
+		for(Comando c: corpo)
+		{
+			switch(c.comando)
+			{
+				case ATRIB:
+					String var=c.str;
+					Simbolo vart=tabela.get(var);
+					int ref= vart.getReferencia();
+					geraExpr(c.expr1);
+					
+			}
+			
+		}
 	}
 }

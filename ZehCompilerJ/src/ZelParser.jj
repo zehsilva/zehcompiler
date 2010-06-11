@@ -193,6 +193,8 @@ void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comand
 
 //--------------------------------Atribuição e Expressões------------------------------------
 Comando atrib(LinkedList<Comando> coms) throws SemanticException:
+//Adiciona varios comandos de atribuiçao na lista de comandos coms e retorna o ultimo comando
+//adicionado
 {Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';ArrayDeque<Item> lst=new ArrayDeque<Item>();
 LinkedList<Comando> atribs=new LinkedList<Comando>();}
 {  (
@@ -229,8 +231,11 @@ LinkedList<Comando> atribs=new LinkedList<Comando>();}
 
 char expr(char tipoAtrib,ArrayDeque<Item> lst) throws SemanticException :{char tipo;}{  tipo=expr_aux(lst)
   {
-    //System.out.println(lst);
+    System.out.println("SemOptmi = "+lst);
     SemanticActions.otimizaExp(lst,tipoAtrib);
+    System.out.println("lstfinal = "+lst);
+    stackLen=SemanticActions.tamanhoMaxPilha(lst,stackLen);
+    
     //System.out.println(lst);
     return tipo; }
 }
@@ -477,6 +482,7 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
 }
 //------------------------------if,while e foreach---------------------------------------------
 Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
+//cria um comandoIF e retorna para quem o chamdou
 {ComandoIF com;
 char tipo;
 LinkedList<Comando> coms1=new LinkedList<Comando>();
@@ -497,6 +503,7 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
   	{ return com; 	}
 }
 Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
+//falta criar o ComandoCorpe e retornar ele
 {Comando com=new Comando();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 {  	<WHILE><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
@@ -505,10 +512,14 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
   				{ return com; 	}
 }
 Comando foreach(LinkedList<Comando> coms) throws SemanticException:
+//falta criar o comandoCorpo, e a expressao certa 
 {Token t;char tipo;Comando com=new Comando();
 LinkedList<Comando> comsnovo=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
-{  	<FOREACH><ABREPAR> <VAR> <IN> tipo=list(lst) <FECHAPAR>
+{  	<FOREACH><ABREPAR> t=<VAR> <IN> tipo=list(lst) <FECHAPAR>
+  	{  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	}
   	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
   	<END>
   		{ return com; 	}
