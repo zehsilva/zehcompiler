@@ -49,13 +49,51 @@ public class CodigoDestino {
                System.out.println(e.getMessage()); 
          }
 	}
-	public static void geraExpr(ArrayDeque<Item> expr)
+	public static void geraExpr(ArrayDeque<Item> expr,BufferedWriter arqSaida) throws IOException
 	{
-		
+		for(Item x:expr)
+		{
+			switch(x.tipo)
+			{
+				case 'i':
+					//arqSaida.write("ldc "+x.getValorInt()+"\r\n");
+					arqSaida.write("ldc2_w "+((double)x.getValorInt())+" \r\n");
+					break;
+				case 'r':
+					arqSaida.write("ldc2_w "+x.getValorDouble()+" \r\n");
+					break;
+				case 'o':
+					switch(x.oper)
+					{
+						case ADD:
+							arqSaida.write("dadd \r\n");
+							break;
+						case SUB:
+							arqSaida.write("dsub \r\n");
+							break;
+						case MULT:
+							arqSaida.write("dmult \r\n");
+							break;
+						case DIV:
+							arqSaida.write("ddiv \r\n");
+							break;
+					}
+					break;
+				case 'v':
+					String var=x.valor;
+					Simbolo vart=tabela.get(var);
+					int ref= vart.getReferencia();
+					if(ref<=3)
+						arqSaida.write("dload_"+ref+" \r\n");
+					else
+						arqSaida.write("dload "+ref+" \r\n");
+					break;
+			}
+		}
 	}
-	public static void processaCorpo(BufferedWriter arqSaida)
+	public static void processaCorpo(BufferedWriter arqSaida) throws IOException
 	{
-		String strcorpo="";
+		//String strcorpo="";
 		for(Comando c: corpo)
 		{
 			switch(c.comando)
@@ -64,10 +102,9 @@ public class CodigoDestino {
 					String var=c.str;
 					Simbolo vart=tabela.get(var);
 					int ref= vart.getReferencia();
-					geraExpr(c.expr1);
-					
+					geraExpr(c.expr1,arqSaida);
+					arqSaida.write("dstore_"+ref+" \r\n");		
 			}
-			
 		}
 	}
 }

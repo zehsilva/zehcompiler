@@ -27,8 +27,10 @@ public class ZelParser{
       try {
         	 fp=new FileInputStream(args[0]);
          analisador = new ZelParser(fp);
-         inicio();
+         cmdlst=inicio();
          System.out.println(tab);
+         CodigoDestino cod=new CodigoDestino(args[0],cmdlst,tab );
+         cod.geraCod();
       }  
       catch(FileNotFoundException e) { 
          System.out.println("Erro: arquivo não encontrado "+args[0]);
@@ -123,9 +125,11 @@ TOKEN : {
       < INDENT: "{" >|
       < DEDENT: "}" >|
       < STRING: "\""(~["\""])*"\"" >
-}void inicio() throws SemanticException:{}
+}LinkedList<Comando> inicio() throws SemanticException:{LinkedList<Comando> coms;}
 {
-  corpo()<EOF>
+  coms=corpo()<EOF>
+  {    return coms;
+  }
 }
 LinkedList<Comando> corpo() throws SemanticException :{LinkedList<Comando> com=new LinkedList<Comando>();}
 {    (decl())? cmds(com)
