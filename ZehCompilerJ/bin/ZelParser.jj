@@ -1,0 +1,553 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */
+
+options{  JDK_VERSION = "1.5";
+  DEBUG_PARSER =false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
+import java.util.*;
+public class ZelParser{
+/*** TODO ZEL
+1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
+<EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
+2. Variáveis não-inicializadas;
+3. Variáveis inicializadas mas não utilizadas;
+4. Otimizador de Expressões
+	- Expressões numéricas;
+	- Expressões com strings;
+	- Expressões com listas;
+5. Estrutura de dados para comandos.
+6. 
+******/
+  public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
+  public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
+  public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
+  public static int stackLen=0;
+  public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
+      System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
+      try {
+        	 fp=new FileInputStream(args[0]);
+         analisador = new ZelParser(fp);
+         cmdlst=inicio();
+         System.out.println(tab);
+         CodigoDestino cod=new CodigoDestino(args[0],cmdlst,tab );
+         cod.geraCod();
+      }  
+      catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado "+args[0]);
+      } 
+      catch(TokenMgrError e) { 
+         System.out.println("Erro léxico\n" + e.getMessage());
+         analisador.ReInit(fp); 
+      }
+      catch (Exception e)
+      {
+        System.out.println("NOK.");
+        System.out.println(e.getMessage());
+        analisador.ReInit(fp);
+      }
+      catch (Error e)
+      {
+        System.out.println("Oops.");
+        System.out.println(e.getMessage());
+      }
+   } 
+} PARSER_END(ZelParser)
+SKIP:
+{
+  " "
+  | "\t"
+  | "\r"
+}
+
+SKIP : { 
+     "!!" : comentario1
+} 
+<comentario1> SKIP: {
+"\n" |
+   <~[]> 
+}
+SKIP : {
+  			"!#": comentario2
+  	}
+
+<comentario2> SKIP: { 
+   "#!"| 
+   <~[]> 
+}
+TOKEN : {
+      < VAR_DCL: "vars" > |
+      < TP_STRING: "string" >|
+      < TP_REAL: "real" >|
+      < TP_INT: "int" >|
+      < TP_CHAR: "char" >|
+      < TP_LIST: "list" >|
+      < DOISP: ":" >|
+      < PNTVIRG: ";" >    |
+      < PNT: ".">|
+      < ATRIB: "=" >|
+      < VIRG: "," >|
+      < ABRERET: "[" >|
+      < FECHARET: "]" >|
+      < ABREPAR: "(" >|
+      < FECHAPAR: ")" >|
+      < ARROBA: "@" >|
+      < DOLLAR: "$" >|
+      < IF : "if" >|
+      < FI: "fi" >|
+      < ELSE: "else" >|
+      < IN: "in" >|
+      < TO: "to" >|
+      < STEP: "step" >|
+      < FOREACH: "foreach" >|
+      < WHILE: "while" >|
+      < END: "end" >|
+      < READ: "read" >|
+      < PRINT: "print" >|
+      < OPER_REL: (["!","=","<",">"])?"="|">"|"<" >|
+      < PLUS: "+">|
+      < MINUS: "-" >|
+      < EXP: "^" >|
+      < MULT: "*" >| 
+      < DIV: "/">|
+      < MOD: "%" >|
+      < AND: "and" >|
+      < NAND: "nand" >|
+      < OR: "or" >|
+      < NOR: "nor" >|
+      < XOR: "xor" >|
+      < NOT: "not" >|
+      < NUM_REAL: (["0"-"9"])*"."(["0"-"9"])+ >|
+      < NUM_INT: (["0"-"9"])+ >|
+      < CHAR: "'"(~["'"])"'" >|
+      < VAR:   ["a"-"z","A"-"Z","_"](["a"-"z","A"-"Z","0"-"9","_"])* >  |
+      
+      < EOL: "\n" >|
+      < INDENT: "{" >|
+      < DEDENT: "}" >|
+      < STRING: "\""(~["\""])*"\"" >
+}LinkedList<Comando> inicio() throws SemanticException:{LinkedList<Comando> coms;}
+{
+  coms=corpo()<EOF>
+  {    return coms;
+  }
+}
+LinkedList<Comando> corpo() throws SemanticException :{LinkedList<Comando> com=new LinkedList<Comando>();}
+{    (decl())? cmds(com)
+  {    return com;
+  }
+}
+
+void decl() throws SemanticException:{}
+{
+  <VAR_DCL><DOISP> ( LOOKAHEAD(2) (vartype())? eoc() )*
+}
+
+void vartype() throws SemanticException :
+{ArrayDeque<Item> lst=new ArrayDeque<Item>();Token t;char tipo1,tipo2;Simbolo s;}
+{   tipo1=type() t=<VAR>   {
+     SemanticActions.testaVarDcl(tab,t);
+     s=new Simbolo(t.image,tipo1);
+     tab.put(t.image,s); }
+   (
+     <ATRIB> tipo2=literal(lst)     {
+       SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+       s.setInicializada();
+       SemanticActions.addCmdAtrib(cmdlst,t.image,lst);
+     }
+   )?
+   (
+     <VIRG> t=<VAR>
+     {
+       SemanticActions.testaVarDcl(tab,t);
+       s=new Simbolo(t.image,tipo1);
+       tab.put(t.image,s);
+     }
+     (
+       <ATRIB> tipo2=literal(lst)
+       {
+         SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+         s.setInicializada();
+         SemanticActions.addCmdAtrib(cmdlst,t.image,lst);
+       }
+     )?
+   )*
+}
+
+char type():{Token t;char s='_';boolean lista=false;}{  (<TP_LIST >{lista=true;})?
+  (< TP_INT>{s='i';}
+  |< TP_CHAR>{s='c';}
+  |<TP_REAL>{s='r';}
+  |<TP_STRING>{s='s';})
+  {
+    if(lista)
+      s=Character.toUpperCase(s);
+    return s;  }
+}
+
+void eoc():{}
+{
+  < EOL>|<PNTVIRG>
+}
+
+void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
+{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | saida(coms1))? eoc() )*
+  {    coms.add(com);
+  }
+}
+
+//--------------------------------Atribuição e Expressões------------------------------------
+Comando atrib(LinkedList<Comando> coms) throws SemanticException:
+//Adiciona varios comandos de atribuiçao na lista de comandos coms e retorna o ultimo comando
+//adicionado
+{Comando com=new Comando();Token t;char tipo1='_',tipo2,tipo='_';ArrayDeque<Item> lst=new ArrayDeque<Item>();
+LinkedList<Comando> atribs=new LinkedList<Comando>();}
+{  (
+    LOOKAHEAD(2)
+    t=<VAR>
+    {
+      if(tipo1=='_')
+      {              	  tipo1=SemanticActions.testaVar(tab,t);
+      	  tipo=tipo1;
+      	}
+      	else
+      	{
+      	  tipo2=SemanticActions.testaVar(tab,t);
+      	  tipo=tipo2;
+      	  SemanticActions.verificaLadoDireito(tipo1,tipo2,t);      	}
+      	com=new Comando(t.image);
+      	atribs.add(com);
+    }
+    <ATRIB>
+  )+
+  {    lst=new ArrayDeque<Item>();
+  }
+  tipo2=expr(tipo,lst)
+  {
+    SemanticActions.verificaLadoDireito(tipo1,tipo2,t);
+    for(Comando c : atribs)
+    {
+      c.setExpr(lst);
+      coms.add(c);
+    }
+    return com;
+  }
+}
+
+char expr(char tipoAtrib,ArrayDeque<Item> lst) throws SemanticException :{char tipo;}{  tipo=expr_aux(lst)
+  {
+    System.out.println("SemOptmi = "+lst);
+    SemanticActions.otimizaExp(lst,tipoAtrib);
+    System.out.println("lstfinal = "+lst);
+    stackLen=SemanticActions.tamanhoMaxPilha(lst,stackLen);
+    
+    //System.out.println(lst);
+    return tipo; }
+}
+char expr_aux(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';Item.op oper;}
+{
+  tipo=expr_and(expr_lst)
+  (
+    (
+      t=<OR>{oper=Item.op.OR;}
+      |t=<XOR>{oper=Item.op.XOR;}
+      |t=<NOR>{oper=Item.op.NOR;}
+    ) expr_and(expr_lst)
+    {
+      tipo='i';
+      SemanticActions.addItemLista(expr_lst,t.image,'o',oper);})*
+  {return tipo; }
+}
+char expr_and(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='i';Item.op oper;}{  tipo=expr_bool(expr_lst)
+  (
+    ( t=<AND> {oper=Item.op.AND;}  	   |t=<NAND> {oper=Item.op.NAND;} 
+  	  ) expr_bool(expr_lst)
+    {
+      
+      tipo='i';
+      SemanticActions.addItemLista(expr_lst,t.image,'o',oper);
+    }
+  )*
+  {return tipo;}
+}
+char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+{  tipo=expr_mod(expr_lst)
+  (
+    (
+      {ArrayDeque<Item> d=new ArrayDeque<Item>();}
+      t=<IN> tipo1=termo_concat(d)
+      {
+        SemanticActions.verificaInList(tipo,tipo1,t);
+        tipo='i';
+        SemanticActions.addItemLista(expr_lst,d,tipo1);
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.IN);
+      }
+    )
+    |
+    (
+      t=<OPER_REL> tipo1=expr_mod(expr_lst)
+      {
+        SemanticActions.verificaTipoRelacional(tipo,tipo1,t,t.image);
+        tipo='i';
+        if(t.image.equals(">"))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.GT);
+        if(t.image.equals(">="))
+        	  SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.GTEQ);
+        if(t.image.equals("<"))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.LS);
+        if(t.image.equals("<="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.LSEQ);
+        if(t.image.equals("=="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.EQ);
+        if(t.image.equals("!="))
+          SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.DIFF);
+      }
+      
+    )*
+  )
+  {return tipo;}
+}
+char expr_mod(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1='n',tipo='_';Token t;}
+{
+  tipo=expr_soma(expr_lst)
+  (
+    t=<MOD> tipo1=expr_soma(expr_lst)
+    {
+      SemanticActions.verificaTipoMod(tipo1,tipo,t);
+      tipo=tipo1;
+      SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.MOD);}
+  )*
+  {return tipo;}
+}
+char expr_soma(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_mult(expr_lst)
+  ((t=<PLUS>|t=<MINUS>) tipo1=expr_mult(expr_lst)
+  {
+    SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
+    //tipo=tipo1;
+    if(t.image.equals("+"))
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.ADD);
+      	else
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.SUB);
+    //SemanticActions.addItemLista(expr_lst,t.image,'o');
+    }
+  )*
+  {return tipo;}
+}
+char expr_mult(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo='n';Token t;}{  tipo=expr_pow(expr_lst)
+  (
+    (t=<MULT>|t=<DIV>) tipo1=expr_pow(expr_lst)
+    {
+      SemanticActions.verificaTipoAritmetica(tipo1,tipo,t,t.image);
+      //tipo=tipo1;
+      if(t.image.equals("*"))
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.MULT);
+      	else
+      	   SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.DIV);
+    }
+  )*
+  {return tipo;}
+}
+char expr_pow(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;}
+{  tipo=termo_not(expr_lst)
+  (
+    t=<EXP> tipo1=expr_pow(expr_lst)
+    {SemanticActions.verificaTipoAritmetica(tipo1,tipo,t);
+    SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.EXP);}
+  )?
+  {return tipo;}
+}
+char termo_not(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1,tipo;Token t;int counter=0;}
+{  (
+    (t=<NOT> {counter++;})+
+    termo_concat(expr_lst)
+    {
+      tipo='i';
+      if(counter%2==0)
+      {        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
+      }else
+        SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.NOT);
+    }
+    |tipo=termo_concat(expr_lst)
+  )
+  {return tipo;}
+}
+char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo1='s';}
+{  tipo=termo(expr_lst)
+  (
+    t=<PNT> tipo1=termo(expr_lst)
+    {
+      SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';
+      SemanticActions.addItemLista(expr_lst,".",'o',Item.op.CONCAT);
+    }
+  )*
+  {return tipo;}
+}
+
+char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo2='_';}
+{
+  (
+    (<PLUS>|<MINUS>)?
+    (
+      t=<VAR>
+      {tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+      SemanticActions.addItemLista(expr_lst,t.image,'v');}
+      |tipo=simple_literal(expr_lst)
+      |<ARROBA><ABREPAR> expr_aux(expr_lst) <FECHAPAR>
+      {tipo='r';SemanticActions.addItemLista(expr_lst,"@",'o',Item.op.ARROBA);}
+      |<ABREPAR> tipo=expr_aux(expr_lst) <FECHAPAR>
+    )
+    |
+    	t=<STRING>
+    {tipo='s';SemanticActions.addItemLista(expr_lst,t.image,tipo); }
+    |
+    	t=<DOLLAR><ABREPAR> expr_aux(expr_lst) <FECHAPAR>
+    {tipo='s';SemanticActions.addItemLista(expr_lst,"$",'o',Item.op.DOLLAR);}
+    |
+    	{ArrayDeque<Item> d=new ArrayDeque<Item>();}
+    tipo=list(d)
+    {SemanticActions.addItemLista(expr_lst,d,tipo);}
+    
+    
+  )
+  {return tipo;}
+}
+//------------------------------Literais e Constantes-----------------------------------------
+char literal(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo;}
+{  (tipo=simple_literal(expr_lst)|tipo=list_literal(expr_lst)|<STRING>{tipo='s';})
+  {    return tipo;
+  }
+}
+char simple_literal(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo;}
+{  (    t=<NUM_REAL>{tipo='r';}
+    |t=<NUM_INT>{tipo='i';}
+    |t=<CHAR>{tipo='c';})
+  {
+    SemanticActions.addItemLista(expr_lst,t.image,tipo);
+    return tipo;}
+}
+char list_literal(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo;}
+{  <ABRERET>tipo=list_literal_elems(expr_lst)<FECHARET>
+  {    return tipo;
+  }
+}
+char list_literal_elems(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo1,tipo2;}
+{  tipo1=list_literal_elem(expr_lst)
+  (
+    t=<VIRG>tipo2=list_literal_elem(expr_lst)
+    {SemanticActions.verificaTipoLista(tipo1,tipo2,t);}
+  )*
+  {    return Character.toUpperCase(tipo1);
+  }
+}
+
+char list_literal_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='s',tipo2='s';}
+{
+  (
+    (tipo=simple_literal(expr_lst)|<STRING>{tipo='s';} )
+    (t=<TO>
+    tipo2=simple_literal(expr_lst){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+    t=<STEP>
+    tipo2=simple_literal(expr_lst){SemanticActions.verificaTipoIncr(tipo,tipo2,t);})?
+ ){return tipo;}  
+}
+//--------------------------------list-------------------------------------------------------
+char list(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo1='_';}
+{
+  <ABRERET> tipo=list_elems(expr_lst) <FECHARET>
+  {return tipo;}
+}
+char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
+{Token t;char tipo='_',tipo2='_';ArrayDeque<Item> d;}
+{
+  	{d=new ArrayDeque<Item>();}
+  tipo=list_elem(d)
+  {SemanticActions.addItemLista(expr_lst,d,tipo);}
+  (
+    t=<VIRG>
+    {d=new ArrayDeque<Item>();}
+    tipo2=list_elem(d)
+    {
+      SemanticActions.addItemLista(expr_lst,d,tipo);
+      SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
+  {return Character.toUpperCase(tipo);}
+}
+char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
+{
+  tipo=expr_aux(expr_lst)
+  {    System.out.println(expr_lst);
+  }
+  (
+    t=<TO>
+    tipo1=expr_aux(lixo){SemanticActions.verificaTipoIncr(tipo,tipo1,t);}
+    <STEP>
+    tipo2=expr_aux(lixo){SemanticActions.verificaTipoIncr(tipo,tipo2,t);}
+  )?
+  {return tipo;}
+}
+//------------------------------if,while e foreach---------------------------------------------
+Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
+//cria um comandoIF e retorna para quem o chamdou
+{ComandoIF com;
+char tipo;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
+LinkedList<Comando> coms2=new LinkedList<Comando>();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{
+    	<IF><ABREPAR>tipo=expr('_',lst)<FECHAPAR><EOL>
+  	<INDENT>coms1=corpo() <DEDENT>(<EOL>)?
+  {
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoIF(lst,coms1);
+  }	
+  	(
+  	  <ELSE><INDENT>coms2=corpo()<DEDENT>(<EOL>)?
+  	  {com.setCorpoElse(coms2);}
+  	)?
+  	<FI>
+  	{ return com; 	}
+}
+Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
+//falta criar o ComandoCorpe e retornar ele
+{Comando com=new Comando();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  	<WHILE><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
+  			<INDENT>corpo()<DEDENT>(<EOL>)?
+  			<END>
+  				{ return com; 	}
+}
+Comando foreach(LinkedList<Comando> coms) throws SemanticException:
+//falta criar o comandoCorpo, e a expressao certa 
+{Token t;char tipo;Comando com=new Comando();
+LinkedList<Comando> comsnovo=new LinkedList<Comando>();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  	<FOREACH><ABREPAR> t=<VAR> <IN> tipo=list(lst) <FECHAPAR>
+  	{  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	}
+  	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
+  	<END>
+  		{ return com; 	}
+}
+
+//----------------------------------Entrada e Saida------------------------------------------
+Comando entrada(LinkedList<Comando> coms) throws SemanticException :
+{Comando com=new Comando();}
+{  	<READ>
+  	<ABREPAR>
+  					(<STRING><VIRG>)?(<VAR><VIRG>)+
+  	<FECHAPAR>
+  		{ return com; 	}
+}
+Comando saida(LinkedList<Comando> coms) throws SemanticException :
+{Comando com=new Comando();
+ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{  		<PRINT>
+  		<ABREPAR>
+  		expr('_',lst)
+  		(
+  		  {lst=new ArrayDeque<Item>();}
+  		  <VIRG> expr('_',lst)
+  		)?
+  						<FECHAPAR>
+  			{ return com; 	}
+}

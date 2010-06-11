@@ -1,0 +1,125 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5"; DEBUG_PARSER = false; 
+ DEBUG_TOKEN_MANAGER = false; }PARSER_BEGIN(CalcConjuntos)import java.io.*;
+public class CalcConjuntos{  public static void main(String args []) throws ParseException  {
+    try    {          CalcConjuntos parser = new CalcConjuntos (new FileInputStream("prog_fonte.my")); 
+    Tabela tab=new Tabela();
+    System.out.println("Calculadora de Conjuntos");    while (true)    {      System.out.print("#:-");      try      {        String res=CalcConjuntos.one_line(tab);
+        if("" == res) break;
+        System.out.println(res);      }      catch (Exception e)      {        System.out.println("NOK.");        System.out.println(e.getMessage());        CalcConjuntos.ReInit(System.in);      }      catch (Error e)      {        System.out.println("Oops.");        System.out.println(e.getMessage());        break;      }    }
+  }catch(FileNotFoundException e) { 
+         System.out.println("Erro: arquivo não encontrado"); 
+      }   }}PARSER_END(CalcConjuntos)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN : /* OPERATORS */{  < UNION : "U" >| < INTERSECT : "^" >| < CONTIDO : "c" >| < PERTENCE : "E" >
+| < SEQ : "..." >}
+
+TOKEN : /* COMMANDS */
+{
+  < ATRIB : "=" >
+}TOKEN :{
+  < ABRECH: "{" >
+| < FECHACH: "}" >
+| < ABREPAR: "(" >
+| < FECHAPAR: ")" >
+| < PNT_VIRG: ";" >
+| < VIRG : "," >| < NUMERIC: (< DIGIT >)+ >
+| < VAR : "_"(< LETTERS >)+ >| < #DIGIT : [ "0"-"9" ] >
+| < #LETTERS: ["a"-"z"]|["A"-"Z"] >
+| < STRING : (< LETTERS >)+ >}String one_line(Tabela tab) :{String ret="";}{
+  ret=comando(tab)<PNT_VIRG>  {
+    return ret;  }
+| (<PNT_VIRG>|<EOF>){ return "";}}
+
+String comando(Tabela tab):{String ret="";String val="";Conjunto c1,c2;Token t;}
+{
+  (
+    val=constante()< PERTENCE >c1=expr_union(tab)
+    {
+      ret=c1.contains(val)?"VERDADEIRO":"FALSO";  	  
+    }
+    |
+    c1=expr_union(tab)
+    {
+      ret=c1.toString();    }
+    (
+      < CONTIDO >c2=expr_union(tab)
+      {
+        ret=c2.containsAll(c1)?"VERDADEIRO":"FALSO";      }
+    )?
+  )
+  {return ret;}
+}
+
+Conjunto expr_union(Tabela tab):{Token t;Conjunto res,c1;}
+{
+  
+  res=expr_inters(tab)
+  (
+    < UNION >
+    c1=expr_inters(tab)
+    {      res=res.Union(c1);    }
+    )*
+  {    return res;  }
+}
+Conjunto expr_inters(Tabela tab):{Conjunto r;Conjunto c2;}
+{
+   r=termo_expr(tab)
+   (
+     < INTERSECT > c2=termo_expr(tab)
+     {r=r.Intersect(c2);} )*
+   {return r;}}
+Conjunto termo_expr(Tabela tab):{Token t;Conjunto r=null;}
+{
+ // LOOKAHEAD(2)  (
+    t=<VAR>(<ATRIB >  r=expr_union(tab)
+      {
+        tab.addKeyValue(t.image,r);
+      })?
+    {r=tab.getValue(t.image);}
+    |
+    r=conj_constante()
+    |
+    <ABREPAR> r=expr_union(tab) <FECHAPAR>
+   )
+    {return r;}
+}Conjunto conj_constante():{Conjunto c=new Conjunto();Token t1;Token t2;String str;}
+{  <ABRECH>
+    (      t1=<NUMERIC>(<SEQ>t2=<NUMERIC>{processaSeq(t1,t2,c);})?
+      {c.add(t1.image);}
+      |
+      t1=<STRING>{c.add(t1.image);}
+    )
+  		  (
+  		    <VIRG>
+  		    (
+  		      t1=<NUMERIC>(<SEQ>t2=<NUMERIC>  		      {
+  		        processaSeq(t1,t2,c);
+  		       })?
+  		      {c.add(t1.image);}
+  		      |
+  		      t1=<STRING>{c.add(t1.image);}
+  		    )
+  		  )*
+  <FECHACH>
+  {    return c;
+  }
+}
+String constante():{Token t;}
+{
+  (t=<STRING>|t= < NUMERIC >)
+  {return t.image;}}
+JAVACODE public void processaSeq(Token t1,Token t2,Conjunto c)
+{
+  int init; int fim;
+  init=Integer.parseInt(t1.image);
+  fim=Integer.parseInt(t2.image);
+  if(init < fim)
+  {
+    for(int i=init+1;i<=fim;i++)
+      c.add(""+i);
+  }else
+  {
+    for(int i=init-1;i>=fim;i--)
+      c.add(""+i);
+  }
+}
