@@ -11,27 +11,19 @@ return
 .end method 
  
 .method public static main([Ljava/lang/String;)V  
-
-
 .limit stack 8 
 .limit locals 9 
 
-
 ldc2_w 30.0 
 dstore_1 
- 
-;em Java:  y = 15 +
-;obedece o formato p
+
 ldc2_w 15.0 
 dload_1 
 ldc2_w 12.0 
 dmul 
 dadd 
-; ' y ' possui referênci
 dstore_3 
- 
-;em Java:  z = 90 /
-;em posfixo:  90 x 1
+
 ldc2_w 90.0 
 dload_1 
 ldc2_w 10.0 
@@ -45,7 +37,6 @@ dmul
 ldc2_w 16.0 
 dadd 
 ddiv 
-; ' z ' possui referênci
 dstore 7 
  
 return 

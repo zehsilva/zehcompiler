@@ -29,11 +29,12 @@ public class ZelParser{
          analisador = new ZelParser(fp);
          cmdlst=inicio();
          System.out.println(tab);
-         //String nclass=args[0].split(".")[0];
+         
          String nclass=args[0].substring(0,args[0].indexOf("."));
          nclass=Character.toUpperCase(nclass.charAt(0))+nclass.substring(1);
          CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
-         cod.geraCod();
+         System.out.println(cmdlst);
+        // cod.geraCod();
       }  
       catch(FileNotFoundException e) { 
          System.out.println("Erro: arquivo não encontrado "+args[0]);
@@ -193,9 +194,15 @@ void eoc():{}
 }
 
 void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
-{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | saida(coms1))? eoc() )*
-  {    coms.add(com);
-  }
+{  (    (
+      (
+        com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | com=saida(coms1)
+	       ){coms.add(com);}
+    )? eoc()
+      
+      
+    )*
+  	  
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
@@ -525,7 +532,7 @@ LinkedList<Comando> comsnovo=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 {  	<FOREACH><ABREPAR> t=<VAR> <IN> tipo=list(lst) <FECHAPAR>
   	{  	  SemanticActions.addItemLista(lst,t.image,'v');
-  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	  SemanticActions.addItemLista(lst,"in",'o',Item.op.IN);
   	}
   	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
   	<END>
@@ -542,15 +549,18 @@ Comando entrada(LinkedList<Comando> coms) throws SemanticException :
   		{ return com; 	}
 }
 Comando saida(LinkedList<Comando> coms) throws SemanticException :
-{Comando com=new Comando();
-ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+{ComandoSaida com;
+ArrayDeque<Item> lst=new ArrayDeque<Item>();
+char tipo;}
 {  		<PRINT>
   		<ABREPAR>
-  		expr('_',lst)
+  tipo=		expr('_',lst)
   		(
   		  {lst=new ArrayDeque<Item>();}
-  		  <VIRG> expr('_',lst)
+  		  <VIRG> tipo=expr('_',lst)
   		)?
   						<FECHAPAR>
-  			{ return com; 	}
+  			{
+  			  com=new ComandoSaida(lst,tipo);
+  			  return com; 	}
 }

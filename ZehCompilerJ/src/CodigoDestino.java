@@ -12,10 +12,11 @@ public class CodigoDestino {
 		arq=nomearq;
 		corpo=corpo1;
 		tabela=tab;
+		//System.out.println(Simbolo.ultimo);
 	}
 	public static int limLocal()
 	{
-		int n=1+((Simbolo)(tabela.values().toArray())[0]).referencia;
+		int n=Simbolo.ultimo;
 		return n;
 	}
 	
@@ -45,7 +46,7 @@ public class CodigoDestino {
                arqSaida.close(); 
          } 
          catch(IOException e) { 
-               System.out.println("Problemas no arquivo 'prog_destino.j'"); 
+               System.out.println("Problemas no arquivo '"+arq+".j'"); 
          } 
          catch(Exception e) { 
                System.out.println(e.getMessage()); 
@@ -108,7 +109,13 @@ public class CodigoDestino {
 					if(ref<=3)
 						arqSaida.write("dstore_"+ref+" \r\n");
 					else
-						arqSaida.write("dstore "+ref+" \r\n");		
+						arqSaida.write("dstore "+ref+" \r\n");
+					break;
+				case PRINT:
+					arqSaida.write("getstatic java/lang/System/out Ljava/io/PrintStream; \r\n");
+					geraExpr(c.expr1,arqSaida);
+					arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
+					break;
 			}
 		}
 	}

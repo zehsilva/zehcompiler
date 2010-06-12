@@ -8,6 +8,7 @@ public class Comando {
 	
 	
 	public ArrayDeque<Item> expr1=null;
+	char tipoExpr1='_';
 	
 	public Comando()
 	{
@@ -31,8 +32,22 @@ public class Comando {
 		this.str=var;
 		this.expr1=exp;
 	}
+	public Comando(String var,ArrayDeque<Item> exp,char tipoexp)
+	/** este daqui serve para o comando de atribuicao
+	**/
+	{ 
+		comando=comtype.ATRIB;
+		this.str=var;
+		this.expr1=exp;
+		this.tipoExpr1=tipoexp;
+	}
 	public void setExpr(ArrayDeque<Item> exp)
 	{
 		this.expr1=exp;
 	}
+	public String toString()
+	{
+		return this.comando+"-"+this.tipoExpr1+"-"+this.expr1 ;
+	}
+	
 }
