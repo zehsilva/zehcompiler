@@ -388,6 +388,11 @@ public class SemanticActions {
 				valint=var2.getValorInt()-var1.getValorInt();
 				val1=true;
 				break;
+			case EXP:
+				valor1=Math.pow(var2.getValorDouble(), var1.getValorDouble());
+				valint=(int)Math.pow(var2.getValorInt(),var1.getValorInt());
+				val1=true;
+				break;
 			case CONCAT:
 				//System.out.println(var2+""+oper+""+var1+" = "+res);
 				if(var1.isString() && var2.isString())

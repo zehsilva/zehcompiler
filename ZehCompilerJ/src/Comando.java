@@ -44,6 +44,7 @@ public class Comando {
 	public void setExpr(ArrayDeque<Item> exp)
 	{
 		this.expr1=exp;
+		
 	}
 	public String toString()
 	{

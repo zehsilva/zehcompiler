@@ -196,7 +196,7 @@ void eoc():{}
 void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
 {  (    (
       (
-        com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | com=saida(coms1)
+        com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | com=entrada(coms1) | com=saida(coms1)
 	       ){coms.add(com);}
     )? eoc()
       
@@ -393,15 +393,29 @@ char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;
   {return tipo;}
 }
 
-char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo2='_';}
+char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;boolean minus=false;char tipo='_',tipo2='_';}
 {
   (
-    (<PLUS>|<MINUS>)?
+    (<MINUS>{minus=true;}|<PLUS>)?
     (
       t=<VAR>
-      {tipo=SemanticActions.testaVarTipoInicializada(tab,t);
-      SemanticActions.addItemLista(expr_lst,t.image,'v');}
-      |tipo=simple_literal(expr_lst)
+      {
+        tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+        if(minus)
+        		  SemanticActions.addItemLista(expr_lst,"0",'r');
+        SemanticActions.addItemLista(expr_lst,t.image,'v');
+        if(minus)
+          SemanticActions.addItemLista(expr_lst,"-",'o',Item.op.SUB);
+      }
+      |
+      {        if(minus)
+          SemanticActions.addItemLista(expr_lst,"0",'r');
+      }
+      tipo=simple_literal(expr_lst)
+      {        if(minus)
+          SemanticActions.addItemLista(expr_lst,"-",'o',Item.op.SUB);
+      }
+      
       |<ARROBA><ABREPAR> expr_aux(expr_lst) <FECHAPAR>
       {tipo='r';SemanticActions.addItemLista(expr_lst,"@",'o',Item.op.ARROBA);}
       |<ABREPAR> tipo=expr_aux(expr_lst) <FECHAPAR>
@@ -541,12 +555,34 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 
 //----------------------------------Entrada e Saida------------------------------------------
 Comando entrada(LinkedList<Comando> coms) throws SemanticException :
-{Comando com=new Comando();}
+{ComandoEntrada com=null;
+Token t;
+String janela="ZEL Program";
+ArrayDeque<String> listaVar=new ArrayDeque<String>();}
 {  	<READ>
   	<ABREPAR>
-  					(<STRING><VIRG>)?(<VAR><VIRG>)+
+  					(
+  					  t=<STRING>
+  					  {
+  					    janela=t.image;  					  }
+  					)?
+  										t=<VAR>
+  										{
+  										  SemanticActions.testaVar(tab,t);
+  										  listaVar.offerLast(t.image);}
+  					(
+  					  <VIRG>t=<VAR>
+  					  {
+  					    SemanticActions.testaVar(tab,t);
+  					    listaVar.offerLast(t.image);
+  					  }					
+  					)*
+  
   	<FECHAPAR>
-  		{ return com; 	}
+  	
+  		{
+  		  com=new ComandoEntrada(janela,listaVar);
+  		  return com; 	}
 }
 Comando saida(LinkedList<Comando> coms) throws SemanticException :
 {ComandoSaida com;

@@ -80,6 +80,21 @@ public class CodigoDestino {
 						case DIV:
 							arqSaida.write("ddiv \r\n");
 							break;
+						case EXP:
+							arqSaida.write("invokestatic java/lang/Math/pow(DD)D \r\n");
+							break;
+						case CONCAT:
+							arqSaida.write("swap \r\n");
+							arqSaida.write("new java/lang/StringBuilder \r\n");
+							arqSaida.write("dup  \r\n");
+							arqSaida.write("invokespecial java/lang/StringBuilder/<init>()V \r\n");
+							arqSaida.write("swap \r\n");
+							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
+							arqSaida.write("swap \r\n");
+							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
+							arqSaida.write("invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\r\n"); 
+							break;
+							
 					}
 					break;
 				case 'v':
@@ -101,6 +116,33 @@ public class CodigoDestino {
 					break;
 					
 			}
+		}
+	}
+	public static void geraEntrada(ComandoEntrada c,BufferedWriter arqSaida) throws IOException
+	{
+		for(String v:c.listaVar)
+		{
+			int ref=tabela.get(v).getReferencia();
+			String pref="";
+			switch(tabela.get(v).tipo)
+			{
+				case 'r':
+					arqSaida.write("invokevirtual java/util/Scanner/nextDouble()D  \r\n");
+					pref="d";
+					break;
+				case 'i':
+					arqSaida.write("invokevirtual java/util/Scanner/nextInt()I  \r\n");
+					pref="i";
+					break;
+				case 's':
+					arqSaida.write("invokevirtual java/util/Scanner/nextLine()Ljava/lang/String; \r\n");
+					pref="a";
+					break;
+			}
+			if(ref<=3)
+				arqSaida.write(pref+"store_"+ref+" \r\n");
+			else
+				arqSaida.write(pref+"store "+ref+" \r\n");
 		}
 	}
 	public static void processaCorpo(BufferedWriter arqSaida) throws IOException
@@ -126,12 +168,24 @@ public class CodigoDestino {
 						arqSaida.write(pref+"store "+ref+" \r\n");
 					break;
 				case PRINT:
+					c=(ComandoSaida)c;
 					arqSaida.write("getstatic java/lang/System/out Ljava/io/PrintStream; \r\n");
 					geraExpr(c.expr1,arqSaida);
 					if(c.tipoExpr1=='n'||c.tipoExpr1=='r'||c.tipoExpr1=='i')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
 					if(c.tipoExpr1=='s')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V \r\n");
+					break;
+				case ENTRADA:
+					ComandoEntrada ce=(ComandoEntrada)c;
+					
+					arqSaida.write("new java/util/Scanner \r\n");
+					arqSaida.write("dup  \r\n");
+					arqSaida.write("getstatic java/lang/System/in Ljava/io/InputStream;  \r\n");
+					arqSaida.write("invokespecial java/util/Scanner/<init>(Ljava/io/InputStream;)V \r\n");
+					for(String s:ce.listaVar)
+						arqSaida.write("dup  \r\n");
+					geraEntrada(ce,arqSaida);
 					break;
 			}
 		}
