@@ -10,20 +10,20 @@ return
 .end method
 .method public static main([Ljava/lang/String;)V
 .limit stack 8
-.limit locals 9
+.limit locals 10
 ldc2_w 30.0 
-dstore_1 
+dstore_2 
 ldc2_w 15.0 
-dload_1 
+dload_2 
 ldc2_w 12.0 
 dmul 
 dadd 
-dstore_3 
+dstore 4 
 ldc2_w 90.0 
-dload_1 
+dload_2 
 ldc2_w 10.0 
 dsub 
-dload_3 
+dload 4 
 ldc2_w 15.0 
 dmul 
 ldc2_w 20.0 
@@ -32,33 +32,24 @@ dmul
 ldc2_w 16.0 
 dadd 
 ddiv 
-dstore 7 
+dstore 8 
+ldc "x" 
+astore_1 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_1 
+aload_1 
+invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V 
+getstatic java/lang/System/out Ljava/io/PrintStream; 
+dload_2 
 invokevirtual java/io/PrintStream/println(D)V 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_1 
+dload 4 
 invokevirtual java/io/PrintStream/println(D)V 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_3 
+dload 8 
 invokevirtual java/io/PrintStream/println(D)V 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_3 
-invokevirtual java/io/PrintStream/println(D)V 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload 7 
-invokevirtual java/io/PrintStream/println(D)V 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload 7 
-invokevirtual java/io/PrintStream/println(D)V 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_1 
-dload_3 
-dadd 
-invokevirtual java/io/PrintStream/println(D)V 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_1 
-dload_3 
+dload_2 
+dload 4 
 dadd 
 invokevirtual java/io/PrintStream/println(D)V 
 return

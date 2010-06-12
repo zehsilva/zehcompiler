@@ -34,7 +34,7 @@ public class ZelParser{
          nclass=Character.toUpperCase(nclass.charAt(0))+nclass.substring(1);
          CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
          System.out.println(cmdlst);
-        // cod.geraCod();
+         cod.geraCod();
       }  
       catch(FileNotFoundException e) { 
          System.out.println("Erro: arquivo não encontrado "+args[0]);

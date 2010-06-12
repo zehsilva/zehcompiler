@@ -85,12 +85,21 @@ public class CodigoDestino {
 				case 'v':
 					String var=x.valor;
 					Simbolo vart=tabela.get(var);
+					String pref="";
 					int ref= vart.getReferencia();
+					if(vart.tipo=='i'||vart.tipo=='r'||vart.tipo=='n')
+						pref="d";
+					if(vart.tipo=='s')
+						pref="a";
 					if(ref<=3)
-						arqSaida.write("dload_"+ref+" \r\n");
+						arqSaida.write(pref+"load_"+ref+" \r\n");
 					else
-						arqSaida.write("dload "+ref+" \r\n");
+						arqSaida.write(pref+"load "+ref+" \r\n");
 					break;
+				case 's':
+					arqSaida.write("ldc \""+x.getValor()+"\" \r\n");
+					break;
+					
 			}
 		}
 	}
@@ -104,17 +113,25 @@ public class CodigoDestino {
 				case ATRIB:
 					String var=c.str;
 					Simbolo vart=tabela.get(var);
+					String pref="";
 					int ref= vart.getReferencia();
 					geraExpr(c.expr1,arqSaida);
+					if(vart.tipo=='i'||vart.tipo=='r'||vart.tipo=='n')
+						pref="d";
+					if(vart.tipo=='s')
+						pref="a";
 					if(ref<=3)
-						arqSaida.write("dstore_"+ref+" \r\n");
+						arqSaida.write(pref+"store_"+ref+" \r\n");
 					else
-						arqSaida.write("dstore "+ref+" \r\n");
+						arqSaida.write(pref+"store "+ref+" \r\n");
 					break;
 				case PRINT:
 					arqSaida.write("getstatic java/lang/System/out Ljava/io/PrintStream; \r\n");
 					geraExpr(c.expr1,arqSaida);
-					arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
+					if(c.tipoExpr1=='n'||c.tipoExpr1=='r'||c.tipoExpr1=='i')
+						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
+					if(c.tipoExpr1=='s')
+						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V \r\n");
 					break;
 			}
 		}
