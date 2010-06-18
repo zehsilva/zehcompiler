@@ -55,9 +55,62 @@ public class CodigoDestino {
          }
 	}
 	public static void dswap(BufferedWriter arqSaida)throws IOException
+	//faz um swap de doubles no topo da pilha 
 	{
 		arqSaida.write("dup2_x2 \r\n");
 		arqSaida.write("pop2  \r\n");
+	}
+	public static void not_bit(BufferedWriter arqSaida)throws IOException
+	//um not que funciona legal para 0 e 1 (inteiros), converte 0 em 1 e 1 em 0
+	{
+		arqSaida.write("ldc 1 \r\n");
+		arqSaida.write("ixor  \r\n");
+	}
+	public static void icmp(BufferedWriter arqSaida)throws IOException
+	{
+		//compara dois inteiroes que estejam na pilha
+		//se forem iguais deixa 1 na pilha, se forem diferentes deixa 0
+		arqSaida.write("isub  \r\n");
+		arqSaida.write("ifne LABIF"+label+"  \r\n");
+		arqSaida.write("ldc 1 \r\n");
+		arqSaida.write("goto LABIF"+(label+1)+" \r\n");
+		arqSaida.write("LABIF"+label+": \n\r" );
+		arqSaida.write("ldc 0 \r\n");
+		arqSaida.write("LABIF"+(label+1)+": \n\r");
+		label+=2;
+	}
+	public static void and(BufferedWriter arqSaida)throws IOException
+	//faz and com short-circuiting de dois inteiros
+	{
+		arqSaida.write("ifeq AND"+label+"  \r\n");
+		arqSaida.write("goto AND"+(label+1)+" \r\n");
+		arqSaida.write("AND"+label+":  \r\n");
+		arqSaida.write("pop \r\n");
+		arqSaida.write("ldc 0 \r\n");
+		arqSaida.write("AND"+(label+1)+": \r\n");
+		label+=2;
+	}
+	public static void or(BufferedWriter arqSaida)throws IOException
+	//faz or com short-circuiting de dois inteiros
+	{
+		arqSaida.write("ifne OR"+label+"  \r\n");
+		arqSaida.write("goto OR"+(label+1)+" \r\n");
+		arqSaida.write("OR"+label+":  \r\n");
+		arqSaida.write("pop \r\n");
+		arqSaida.write("ldc 1 \r\n");
+		arqSaida.write("OR"+(label+1)+": \r\n");
+		label+=2;
+	}
+	public static void not(BufferedWriter arqSaida)throws IOException
+	//faz not
+	{
+		arqSaida.write("ifeq NOT"+label+"  \r\n");
+		arqSaida.write("ldc 0 \r\n");
+		arqSaida.write("goto "+(label+1)+" \r\n");
+		arqSaida.write("NOT"+label+":  \r\n");
+		arqSaida.write("ldc 1 \r\n");
+		arqSaida.write("NOT"+(label+1)+": \r\n");
+		label+=2;
 	}
 	public static void converteTipo(char tipo1, char tipoCast,BufferedWriter arqSaida) throws IOException
 	{
@@ -159,13 +212,15 @@ public class CodigoDestino {
 									arqSaida.write("ldc 0 \r\n");
 								}
 							}
-							arqSaida.write("sub  \r\n");
+							/*arqSaida.write("isub  \r\n");
 							arqSaida.write("ifne LABIF"+label+"  \r\n");
 							arqSaida.write("ldc 1 \r\n");
 							arqSaida.write("goto LABIF"+(label+1)+" \r\n");
 							arqSaida.write("LABIF"+label+": \n\r" );
 							arqSaida.write("ldc 0 \r\n");
 							arqSaida.write("LABIF"+(label+1)+": \n\r");
+							label+=2;*/
+							icmp(arqSaida);
 							tipos.offer('i');
 							break;
 						case AND:
@@ -173,9 +228,7 @@ public class CodigoDestino {
 							tipoant2=tipos.poll();
 							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
 								converteTipo(tipoant1,tipoant2,'i',arqSaida);
-							arqSaida.write("iand \r\n");
-							arqSaida.write("ldc 1 \r\n");
-							arqSaida.write("iand \r\n");
+							and(arqSaida);
 							tipos.offer('i');
 							break;
 						case OR:
@@ -183,18 +236,33 @@ public class CodigoDestino {
 							tipoant2=tipos.poll();
 							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
 								converteTipo(tipoant1,tipoant2,'i',arqSaida);
-							arqSaida.write("ior \r\n");
-							arqSaida.write("ldc 1 \r\n");
-							arqSaida.write("iand \r\n");
+							or(arqSaida);
 							tipos.offer('i');
 							break;
 						case NAND:
-							arqSaida.write("dmul \r\n");
-							arqSaida.write("dneg \r\n");
+							tipoant1=tipos.poll();
+							tipoant2=tipos.poll();
+							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
+								converteTipo(tipoant1,tipoant2,'i',arqSaida);
+							and(arqSaida);
+							not(arqSaida);
 							break;
 						case NOR:
-							arqSaida.write("dadd \r\n");
-							arqSaida.write("dneg \r\n");
+							tipoant1=tipos.poll();
+							tipoant2=tipos.poll();
+							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
+								converteTipo(tipoant1,tipoant2,'i',arqSaida);
+							or(arqSaida);
+							not(arqSaida);
+							break;
+						case XOR:
+							tipoant1=tipos.poll();
+							tipoant2=tipos.poll();
+							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
+								converteTipo(tipoant1,tipoant2,'i',arqSaida);
+							or(arqSaida);
+							not(arqSaida);
+							break;
 						case ADD:
 							arqSaida.write("dadd \r\n");
 							break;
