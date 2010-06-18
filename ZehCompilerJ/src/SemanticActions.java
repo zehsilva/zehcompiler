@@ -416,6 +416,11 @@ public class SemanticActions {
 		{
 			if(var1.isReal()||var2.isReal())
 				tipoA='r';
+			else
+			{
+				if(var1.isInt() && var2.isInt())
+					tipoA='i';
+			}
 			
 			res=new Item(tipoA,valor1);
 			res.valorint=valint;
@@ -496,7 +501,7 @@ public class SemanticActions {
 	}
 	public static int tamanhoMaxPilha(ArrayDeque<Item> expr, int tamAnt)
 	{
-		int t=0;
+		int t=0,t2=0;
 		int nant=0;
 		ArrayList<Item> al;
 		
@@ -508,7 +513,29 @@ public class SemanticActions {
 			//System.out.print(i);
 			if(i.isOper())
 			{
-					t-=2;
+				
+				
+				switch(i.oper)
+				{
+					case ARROBA:
+						t2=2;
+						break;
+					case DOLLAR:
+						t2=3;
+						break;
+					case EXP:
+						t2=1;
+						break;
+					case CONCAT:
+						t2=6;
+						break;
+					default:
+						t2=0;
+						break;
+				}
+				if((t+t2)>tamAnt)
+					tamAnt=t+t2;
+				t-=2;
 			}else
 			{
 				t+=2;

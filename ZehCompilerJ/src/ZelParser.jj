@@ -5,19 +5,19 @@
 options{  JDK_VERSION = "1.5";
   DEBUG_PARSER =false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
 import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 public class ZelParser{
-/*** TODO ZEL
+/***TODO ZEL
 1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
 <EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
 2. Variáveis não-inicializadas;
 3. Variáveis inicializadas mas não utilizadas;
-4. Otimizador de Expressões
-	- Expressões numéricas;
-	- Expressões com strings;
-	- Expressões com listas;
-5. Estrutura de dados para comandos.
-6. 
+6. Implementar casting de tipos numéricos dentro do item, possivelmente terei que fazer a função
+que compara os tipos para ver se são incompatíveis retornar um tipo para casting, aeh, devo passar
+para a função addElemList e também criar um construtor com a informação de casting
 ******/
+
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
   public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
   public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
@@ -35,6 +35,18 @@ public class ZelParser{
          CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
          System.out.println(cmdlst);
          cod.geraCod();
+         System.out.println("Codigo Gerado");
+         System.out.println("Executando Assembler (Jasmin)");
+         Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
+	//esta parte serve para ler as mensagens geradas pelo jasmin
+         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+         String line="";
+         
+         while ((line = input.readLine()) != null)
+         {
+           System.out.println(line);
+         }
+         input.close();
       }  
       catch(FileNotFoundException e) { 
          System.out.println("Erro: arquivo não encontrado "+args[0]);

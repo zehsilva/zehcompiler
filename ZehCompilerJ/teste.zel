@@ -1,17 +1,11 @@
-vars: string a;
+vars: string a,b,c;
 real x,y,w,z; 
   x = 1 < 10
-  x = 30; 
-  y = 15 + x * 12; 
-  z = 90 / ((x - 10) * (y * 15 + 20) + 16); 
-  a="x";
-  read(x,a);
-  print(a."y"."12");
-  print(x);
-  
-  print(x);
-  print(a);
-  print(y);
-  print(x+3);
-  print(x^-1);
+  x = 3; 
+  y=2;
+  a="12"
+  b="13"
+  c="22"
+  y=1+x+@(c)
+  print(x and y);
   

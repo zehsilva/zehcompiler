@@ -9,8 +9,10 @@ public class ComandoEntrada extends Comando {
 		this.str=msg;
 		this.listaVar=vars;
 	}
+	
 	public String toString()
 	{
+		
 		return super.toString()+listaVar;
 	}
 

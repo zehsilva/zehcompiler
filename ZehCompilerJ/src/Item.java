@@ -8,6 +8,7 @@ public class Item {
 	public int valorint;
 	static enum op{ADD,SUB,MULT,DIV,MOD,CONCAT,EXP,NOT,AND,NAND,XOR,OR,NOR,DOLLAR,ARROBA,MAIOR,MENOR,GT,LS,GTEQ,LSEQ,EQ,DIFF,IN,NONE};
 	op oper=op.NONE;
+	public char cast;
 	public ArrayDeque<Item> valorlst=new ArrayDeque<Item>();
 	public Item()
 	{
@@ -118,6 +119,10 @@ public class Item {
 	public void setTipo(char t)
 	{
 		this.tipo=t;
+	}
+	public void setCast(char t)
+	{
+		this.cast=t;
 	}
 	public boolean isOper()
 	{
