@@ -15,6 +15,5 @@ ldc 1
 dstore 4 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
 dload 4 
-invokevirtual java/io/PrintStream/println(D)V 
 return
 .end method
