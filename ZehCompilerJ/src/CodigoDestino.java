@@ -59,8 +59,25 @@ public class CodigoDestino {
 		arqSaida.write("dup2_x2 \r\n");
 		arqSaida.write("pop2  \r\n");
 	}
+	public static void converteTipo(char tipo1, char tipoCast,BufferedWriter arqSaida) throws IOException
+	{
+		if(tipo1=='n')
+			tipo1='d';
+		if(tipo1=='d' && tipoCast=='i')
+		{
+			arqSaida.write("d2i \r\n");
+		}
+		if(tipo1=='i' && tipoCast=='d')
+		{
+			arqSaida.write("i2d \r\n");
+		}
+	}
 	public static void converteTipo(char tipo1,char tipo2, char tipoCast,BufferedWriter arqSaida) throws IOException
 	{
+		if(tipo1=='n')
+			tipo1='d';
+		if(tipo2=='n')
+			tipo2='d';
 		if(tipo1=='d' && tipo2=='i' && tipoCast=='d')
 		{
 			arqSaida.write("dup2_x1 \r\n");
@@ -94,10 +111,11 @@ public class CodigoDestino {
 			converteTipo('i','d','i',arqSaida);
 		}
 	}
-	public static void geraExpr(Comando c,BufferedWriter arqSaida) throws IOException
+	public static char geraExpr(Comando c,BufferedWriter arqSaida) throws IOException
 	{
 		char tipoant1,tipoant2;
 		tipoant1='_';
+		tipoant2=tipoant1;
 		ArrayDeque<Character> tipos=new ArrayDeque<Character>();
 
 		for(Item x:c.expr1)
@@ -123,7 +141,7 @@ public class CodigoDestino {
 					switch(x.oper)
 					{
 						case GT:
-							
+							break;
 						case EQ:
 							tipoant1=tipos.poll();
 							tipoant2=tipos.poll();
@@ -153,10 +171,22 @@ public class CodigoDestino {
 						case AND:
 							tipoant1=tipos.poll();
 							tipoant2=tipos.poll();
-							arqSaida.write("dmul \r\n");
+							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
+								converteTipo(tipoant1,tipoant2,'i',arqSaida);
+							arqSaida.write("iand \r\n");
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("iand \r\n");
+							tipos.offer('i');
 							break;
 						case OR:
-							arqSaida.write("dadd \r\n");
+							tipoant1=tipos.poll();
+							tipoant2=tipos.poll();
+							if(tipoant1=='r' || tipoant2=='r'||tipoant1=='n'||tipoant2=='n')
+								converteTipo(tipoant1,tipoant2,'i',arqSaida);
+							arqSaida.write("ior \r\n");
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("iand \r\n");
+							tipos.offer('i');
 							break;
 						case NAND:
 							arqSaida.write("dmul \r\n");
@@ -224,7 +254,9 @@ public class CodigoDestino {
 					break;
 					
 			}
+			tipoant2=tipoant1;
 		}
+		return tipoant2;
 	}
 	public static void geraEntrada(ComandoEntrada c,BufferedWriter arqSaida) throws IOException
 	{
@@ -278,8 +310,11 @@ public class CodigoDestino {
 					break;
 				case PRINT:
 					c=(ComandoSaida)c;
+					char tipo;
 					arqSaida.write("getstatic java/lang/System/out Ljava/io/PrintStream; \r\n");
-					geraExpr(c,arqSaida);
+					tipo=geraExpr(c,arqSaida);
+					if(c.tipoExpr1!=tipo)
+						
 					if(c.tipoExpr1=='n'||c.tipoExpr1=='r'||c.tipoExpr1=='i')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
 					if(c.tipoExpr1=='s')

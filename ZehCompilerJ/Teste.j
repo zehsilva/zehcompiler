@@ -9,17 +9,12 @@ invokespecial java/lang/Object/<init>()V
 return
 .end method
 .method public static main([Ljava/lang/String;)V
-.limit stack 100
-.limit locals 12
+.limit stack 24
+.limit locals 121
+ldc 1
+dstore 4 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
-ldc 6
-ldc2_w 4.0 
-dup2_x1
-pop2
-i2d
-dup2_x2
-pop2
-dsub
+dload 4 
 invokevirtual java/io/PrintStream/println(D)V 
 return
 .end method
