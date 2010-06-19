@@ -11,6 +11,8 @@ return
 .method public static main([Ljava/lang/String;)V
 .limit stack 14
 .limit locals 5
+ldc 2
+istore_3 
 new java/util/Scanner 
 dup  
 getstatic java/lang/System/in Ljava/io/InputStream;  
@@ -18,18 +20,15 @@ invokespecial java/util/Scanner/<init>(Ljava/io/InputStream;)V
 dup  
 invokevirtual java/util/Scanner/nextInt()I  
 istore_3 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-iload_3 
-invokevirtual java/io/PrintStream/println(I)V 
 iload_3 
 ldc 5
 isub  
-ifne LABIF2  
+ifge LABGT2  
 ldc 1 
-goto LABIF3 
-LABIF2: 
+goto LABGT3 
+LABGT2: 
 ldc 0 
-LABIF3: 
+LABGT3: 
 ifeq IF0  
 ldc 3
 i2d 
@@ -37,7 +36,6 @@ dstore_1
 getstatic java/lang/System/out Ljava/io/PrintStream; 
 dload_1 
 ldc 100
-;;tipo1=i tipo2=r 
 i2d 
 dadd 
 invokevirtual java/io/PrintStream/println(D)V 
@@ -63,22 +61,19 @@ NOT7:
 invokevirtual java/io/PrintStream/println(I)V 
 goto IF1  
 IF0:  
-ldc 1
-i2d 
+ldc2_w 10.0 
 dstore_1 
 getstatic java/lang/System/out Ljava/io/PrintStream; 
 dload_1 
-iload_3 
-;;tipo1=i tipo2=r 
-i2d 
-dadd 
-invokevirtual java/io/PrintStream/println(D)V 
-getstatic java/lang/System/out Ljava/io/PrintStream; 
-dload_1 
-iload_3 
-i2d 
-dmul 
-invokevirtual java/io/PrintStream/println(D)V 
+ldc2_w 78.0 
+dcmpg 
+ifge LABGT8  
+ldc 1 
+goto LABGT9 
+LABGT8: 
+ldc 0 
+LABGT9: 
+invokevirtual java/io/PrintStream/println(I)V 
 IF1:  
 return
 .end method

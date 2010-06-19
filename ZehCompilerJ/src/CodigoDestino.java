@@ -197,7 +197,29 @@ public class CodigoDestino {
 				case 'o':
 					switch(x.oper)
 					{
-						case GT:
+						case LS:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
+							if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
+							{
+								converteTipo(tipoant1,tipoant2,'r',arqSaida);
+								arqSaida.write("dcmpg \r\n");
+							}
+							else
+							{			
+								if(tipoant1=='i'|| tipoant2=='i')
+								{
+									arqSaida.write("isub  \r\n");
+								}
+							}
+							arqSaida.write("ifge LABLS"+label+"  \r\n");
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("goto LABLS"+(label+1)+" \r\n");
+							arqSaida.write("LABLS"+label+": \n\r" );
+							arqSaida.write("ldc 0 \r\n");
+							arqSaida.write("LABLS"+(label+1)+": \n\r");
+							label+=2;
+							tipos.offerLast('i');
 							break;
 						case EQ:
 							tipoant1=tipos.pollLast();
