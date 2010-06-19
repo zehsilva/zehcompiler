@@ -9,7 +9,7 @@ invokespecial java/lang/Object/<init>()V
 return
 .end method
 .method public static main([Ljava/lang/String;)V
-.limit stack 14
+.limit stack 18
 .limit locals 5
 ldc 2
 istore_3 
@@ -32,8 +32,19 @@ LABLE2:
 LABLE3: 
 ifeq WHILE1  
 getstatic java/lang/System/out Ljava/io/PrintStream; 
+ldc "y = " 
 iload_3 
-invokevirtual java/io/PrintStream/println(I)V 
+invokestatic java/lang/Integer/toString(I)Ljava/lang/String; 
+swap 
+new java/lang/StringBuilder 
+dup  
+invokespecial java/lang/StringBuilder/<init>()V 
+swap 
+invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; 
+swap 
+invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; 
+invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;
+invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V 
 iload_3 
 ldc 1
 iadd 

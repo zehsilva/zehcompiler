@@ -3,8 +3,6 @@ vars: real x;int y
   read(y)
   while(y<=5)
   {
-    print(y);
+    print("y = ".$(y));
     y=y+1
   }end
-
-  
