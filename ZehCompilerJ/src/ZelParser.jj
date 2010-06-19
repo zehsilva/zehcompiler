@@ -35,7 +35,7 @@ para a função addElemList e também criar um construtor com a informação de casti
          CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
          System.out.println(cmdlst);
          cod.geraCod();
-         System.out.println("Codigo Gerado");
+         //System.out.println("Codigo Gerado");
          System.out.println("Executando Assembler (Jasmin)");
          Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
 	//esta parte serve para ler as mensagens geradas pelo jasmin

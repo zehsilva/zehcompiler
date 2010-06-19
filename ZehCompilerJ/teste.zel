@@ -1,5 +1,15 @@
-vars: string a,b,c;
-real x,y,w,z; 
-  x = 1 and 2
-  print(x);
+vars: real x;int y
+  read(y)
+  print(y)
+  if(y==5)
+  {
+  	x=3
+  	print(x + 100);
+    print(x nor 0);
+  }else{
+  	x=1
+  	print(x + y);
+    print(x * y);
+  }
+  fi
   
