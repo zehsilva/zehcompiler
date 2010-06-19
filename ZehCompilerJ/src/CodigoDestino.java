@@ -197,6 +197,30 @@ public class CodigoDestino {
 				case 'o':
 					switch(x.oper)
 					{
+						case GTEQ:
+						tipoant1=tipos.pollLast();
+						tipoant2=tipos.pollLast();
+						if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
+						{
+							converteTipo(tipoant1,tipoant2,'r',arqSaida);
+							arqSaida.write("dcmpg \r\n");
+						}
+						else
+						{			
+							if(tipoant1=='i'|| tipoant2=='i')
+							{
+								arqSaida.write("isub  \r\n");
+							}
+						}
+						arqSaida.write("ifge LABGE"+label+"  \r\n");
+						arqSaida.write("ldc 0 \r\n");
+						arqSaida.write("goto LABGE"+(label+1)+" \r\n");
+						arqSaida.write("LABGE"+label+": \n\r" );
+						arqSaida.write("ldc 1 \r\n");
+						arqSaida.write("LABGE"+(label+1)+": \n\r");
+						label+=2;
+						tipos.offerLast('i');
+						break;
 						case LS:
 							tipoant1=tipos.pollLast();
 							tipoant2=tipos.pollLast();
@@ -218,6 +242,54 @@ public class CodigoDestino {
 							arqSaida.write("LABLS"+label+": \n\r" );
 							arqSaida.write("ldc 0 \r\n");
 							arqSaida.write("LABLS"+(label+1)+": \n\r");
+							label+=2;
+							tipos.offerLast('i');
+							break;
+						case GT:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
+							if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
+							{
+								converteTipo(tipoant1,tipoant2,'r',arqSaida);
+								arqSaida.write("dcmpg \r\n");
+							}
+							else
+							{			
+								if(tipoant1=='i'|| tipoant2=='i')
+								{
+									arqSaida.write("isub  \r\n");
+								}
+							}
+							arqSaida.write("ifle LABGT"+label+"  \r\n");
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("goto LABGT"+(label+1)+" \r\n");
+							arqSaida.write("LABGT"+label+": \n\r" );
+							arqSaida.write("ldc 0 \r\n");
+							arqSaida.write("LABGT"+(label+1)+": \n\r");
+							label+=2;
+							tipos.offerLast('i');
+							break;
+						case LSEQ:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
+							if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
+							{
+								converteTipo(tipoant1,tipoant2,'r',arqSaida);
+								arqSaida.write("dcmpg \r\n");
+							}
+							else
+							{			
+								if(tipoant1=='i'|| tipoant2=='i')
+								{
+									arqSaida.write("isub  \r\n");
+								}
+							}
+							arqSaida.write("ifle LABLE"+label+"  \r\n");
+							arqSaida.write("ldc 0 \r\n");
+							arqSaida.write("goto LABLE"+(label+1)+" \r\n");
+							arqSaida.write("LABLE"+label+": \n\r" );
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("LABLE"+(label+1)+": \n\r");
 							label+=2;
 							tipos.offerLast('i');
 							break;
@@ -355,11 +427,16 @@ public class CodigoDestino {
 							}
 							break;
 						case EXP:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
 							if(tipoant1=='i' || tipoant2=='i')
 								converteTipo(tipoant1,tipoant2,'r',arqSaida);
 							arqSaida.write("invokestatic java/lang/Math/pow(DD)D \r\n");
+							tipos.offerLast('r');
 							break;
 						case CONCAT:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
 							arqSaida.write("swap \r\n");
 							arqSaida.write("new java/lang/StringBuilder \r\n");
 							arqSaida.write("dup  \r\n");
@@ -368,17 +445,22 @@ public class CodigoDestino {
 							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
 							arqSaida.write("swap \r\n");
 							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
-							arqSaida.write("invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\r\n"); 
+							arqSaida.write("invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\r\n");
+							tipos.offerLast('s');
 							break;
 						case ARROBA:
+							tipoant1=tipos.pollLast();
 							arqSaida.write("invokestatic java/lang/Double/parseDouble(Ljava/lang/String;)D \r\n");
 							tipoant1='r';
+							tipos.offerLast('r');
 							break;
 						case DOLLAR:
+							tipoant1=tipos.pollLast();
 							if(tipoant1=='r'||tipoant1=='n')
 								arqSaida.write("invokestatic java/lang/Double/toString(D)Ljava/lang/String; \r\n");
 							if(tipoant1=='i')
 								arqSaida.write("invokestatic java/lang/Integer/toString(I)Ljava/lang/String; \r\n");
+							tipos.offerLast('s');
 							break;
 					}
 					
@@ -404,6 +486,7 @@ public class CodigoDestino {
 					break;
 				case 's':
 					arqSaida.write("ldc \""+x.getValor()+"\" \r\n");
+					tipos.offerLast('s');
 					break;
 					
 			}
@@ -442,6 +525,9 @@ public class CodigoDestino {
 	{
 		//String strcorpo="";
 		char tipo;
+		LinkedList<Comando> corpoTemp;
+		String lab1="";
+		String lab2="";//parte do else
 		for(Comando c: corpo)
 		{
 			switch(c.comando)
@@ -497,18 +583,17 @@ public class CodigoDestino {
 					break;
 				case IF:
 					ComandoIF cif=(ComandoIF)c;
-					LinkedList<Comando> corpoTemp=corpo;
+					corpoTemp=corpo;
 					
-					String lab1="IF"+label;
-					String lab2="IF"+(label+1);//parte do else
+					lab1="IF"+label;
+					lab2="IF"+(label+1);//parte do else
 					label+=2;
 					
 					geraExpr(cif,arqSaida);
-					///gera a parte do if;
 					arqSaida.write("ifeq "+lab1+"  \r\n");
 					corpo=cif.corpo;
-					processaCorpo(arqSaida);
-					arqSaida.write("goto "+lab2+"  \r\n");
+						processaCorpo(arqSaida);
+						arqSaida.write("goto "+lab2+"  \r\n");
 					arqSaida.write(lab1+":  \r\n");
 					if(cif.corpoelse!=null)
 					{
@@ -518,6 +603,27 @@ public class CodigoDestino {
 					arqSaida.write(lab2+":  \r\n");
 					
 					corpo=corpoTemp;
+					lab1="";
+					lab2="";
+					break;
+				case WHILE:
+					ComandoCorpo cwhile=(ComandoCorpo)c;
+					corpoTemp=corpo;
+					
+					lab1="WHILE"+label;
+					lab2="WHILE"+(label+1);//parte do else
+					label+=2;
+					
+					arqSaida.write(lab1+":  \r\n");
+					geraExpr(cwhile,arqSaida);
+					arqSaida.write("ifeq "+lab2+"  \r\n");
+						corpo=cwhile.corpo;
+						processaCorpo(arqSaida);
+					arqSaida.write("goto "+lab1+"  \r\n");
+					arqSaida.write(lab2+":  \r\n");
+					
+					corpo=corpoTemp;
+					break;
 			}
 		}
 	}

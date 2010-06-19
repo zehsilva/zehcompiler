@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+
+
 public class SemanticActions {
 	
 	
@@ -425,6 +427,7 @@ public class SemanticActions {
 			res=new Item(tipoA,valor1);
 			res.valorint=valint;
 		}
+		
 		System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
 		return res;
 	}

@@ -207,9 +207,15 @@ void eoc():{}
 
 void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
 {  (    (
+      {com=null;}
       (
-        com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | com=entrada(coms1) | com=saida(coms1)
-	       ){coms.add(com);}
+        com=ifcmd(coms1){coms.add(com);}
+        |com=whilecmd(coms1){coms.add(com);}
+        |com=foreach(coms1)
+        |com=atrib(coms)
+        |com=entrada(coms1){coms.add(com);}
+        |com=saida(coms1){coms.add(com);}
+	       )
     )? eoc()
       
       
@@ -544,10 +550,16 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 }
 Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
 //falta criar o ComandoCorpe e retornar ele
-{Comando com=new Comando();
+{ComandoCorpo com;
+char tipo;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
-{  	<WHILE><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
-  			<INDENT>corpo()<DEDENT>(<EOL>)?
+{  	<WHILE><ABREPAR>tipo=expr('_',lst)<FECHAPAR><EOL>
+  			<INDENT>coms1=corpo()<DEDENT>(<EOL>)?
+  			{
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoCorpo(Comando.comtype.WHILE, lst, coms1);
+  }
   			<END>
   				{ return com; 	}
 }
