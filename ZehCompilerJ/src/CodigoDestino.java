@@ -24,7 +24,7 @@ public class CodigoDestino {
 	
 	public static void geraCod()
 	{
-		 BufferedWriter arqSaida; 
+		 BufferedWriter arqSaida=null; 
          try { 
                arqSaida = new BufferedWriter(new FileWriter(arq+".j")); 
                //arq.indexOf(".");
@@ -48,11 +48,15 @@ public class CodigoDestino {
                arqSaida.close(); 
               
          } 
-         catch(IOException e) { 
+         catch(IOException e1) { 
                System.out.println("Problemas no arquivo '"+arq+".j'"); 
          } 
-         catch(Exception e) { 
-             e.printStackTrace();
+         catch(Exception e2) {
+        	 try{
+        		 arqSaida.close();
+        	 }catch(Exception e3){;}
+        	 finally{;}
+             e2.printStackTrace();
         	 
          }
 	}
@@ -168,14 +172,14 @@ public class CodigoDestino {
 			converteTipo('i','r','i',arqSaida);
 		}
 	}
-	public static char geraExpr(Comando c,BufferedWriter arqSaida) throws IOException
+	public static char geraExpr(ArrayDeque<Item> c,BufferedWriter arqSaida) throws IOException
 	{
 		char tipoant1,tipoant2;
 		tipoant1='_';
 		tipoant2=tipoant1;
 		ArrayDeque<Character> tipos=new ArrayDeque<Character>();
 
-		for(Item x:c.expr1)
+		for(Item x:c)
 		{
 			tipoant2=tipoant1;
 			System.out.println("Tipos: "+tipos);
@@ -194,6 +198,12 @@ public class CodigoDestino {
 					
 					tipos.offerLast('r');
 					tipoant1='r';
+					break;
+				case 'c':
+					arqSaida.write("ldc "+Character.getNumericValue(x.getValorChar())+" \r\n");
+					arqSaida.write("i2c  \r\n");
+					tipos.offerLast('c');
+					tipoant1='c';
 					break;
 				case 'o':
 					switch(x.oper)
@@ -489,12 +499,75 @@ public class CodigoDestino {
 					arqSaida.write("ldc \""+x.getValor()+"\" \r\n");
 					tipos.offerLast('s');
 					break;
-					
+				case 'I':
+					geraLista(x.valorlst,'I',arqSaida);
+					tipos.offerLast('I');
+					break;
+				case 'R':
+					geraLista(x.valorlst,'R',arqSaida);
+					tipos.offerLast('R');
+					break;
+				case 'N':
+					geraLista(x.valorlst,'R',arqSaida);
+					tipos.offerLast('R');
+					break;
+				case 'C':
+					geraLista(x.valorlst,'C',arqSaida);
+					tipos.offerLast('C');
+					break;
 			}
 			tipoant2=tipoant1;
 		}
 		return tipos.pollLast();
 	}
+	public static void geraDoubleO(BufferedWriter arqSaida) throws IOException
+	//supoe que existe um double no topo da pilha e cria um objeto Double com este double
+	{
+		arqSaida.write("new java/lang/Double  \r\n");
+		arqSaida.write("dup  \r\n");//duplica a referencia ao objeto
+		arqSaida.write("dup2_x2  \r\n");//copia as duas ref para baixo do double
+		arqSaida.write("pop2  \r\n");//desfaz das duas referencias q estao no topo
+		arqSaida.write("invokespecial java/lang/Double/<init>(D)V  \r\n");
+	}
+	public static void geraIntegerO(BufferedWriter arqSaida) throws IOException
+	//supoe que existe um double no topo da pilha e cria um objeto Double com este double
+	{
+		arqSaida.write("new java/lang/Integer  \r\n");
+		arqSaida.write("dup  \r\n");//duplica a referencia ao objeto
+		arqSaida.write("dup2_x1  \r\n");//copia as duas ref para baixo do double
+		arqSaida.write("pop2  \r\n");//desfaz das duas referencias q estao no topo
+		arqSaida.write("invokespecial java/lang/Integer/<init>(I)V  \r\n");
+	}
+	public static void geraLista(ArrayDeque<Item> lst,char tipo,BufferedWriter arqSaida) throws IOException
+	{
+		char tipolst,tipox;
+		String objDescript="";
+		tipolst=Character.toLowerCase(tipo);
+		if(tipo=='R' || tipo=='N')
+			objDescript="java/lang/Double";
+		if(tipo=='I')
+			objDescript="java/lang/Integer";
+		if(tipo=='C')
+			objDescript="java/lang/Character";
+		if(tipo=='S')
+			objDescript="java/lang/String";
+		
+		arqSaida.write("new java/util/ArrayList  \r\n");
+		arqSaida.write("dup \r\n");
+		arqSaida.write("invokespecial java/util/ArrayList/<init>()V  \r\n");
+		for(Item x:lst)
+		{
+			arqSaida.write("dup \r\n");
+			tipox=geraExpr(x.valorlst,arqSaida);
+			converteTipo(tipox,tipolst,arqSaida);
+			if(tipox=='r'||tipox=='d')
+				geraDoubleO(arqSaida);
+			if(tipox=='i')
+				geraIntegerO(arqSaida);
+			arqSaida.write("invokespecial java/util/ArrayList/add(L"+objDescript+";)V  \r\n");
+		}
+	}
+	
 	public static void geraEntrada(ComandoEntrada c,BufferedWriter arqSaida) throws IOException
 	{
 		for(String v:c.listaVar)
@@ -539,7 +612,7 @@ public class CodigoDestino {
 					String pref="";
 					
 					int ref= vart.getReferencia();
-					tipo=geraExpr(c,arqSaida);
+					tipo=geraExpr(c.expr1,arqSaida);
 					if(vart.tipo=='i')
 						pref="i";
 					if(vart.tipo=='r'||vart.tipo=='n')
@@ -557,7 +630,7 @@ public class CodigoDestino {
 				case PRINT:
 					c=(ComandoSaida)c;
 					arqSaida.write("getstatic java/lang/System/out Ljava/io/PrintStream; \r\n");
-					tipo=geraExpr(c,arqSaida);
+					tipo=geraExpr(c.expr1,arqSaida);
 					System.out.println("Print: tipoexpr="+c.tipoExpr1+" ; tipo="+tipo);
 					if(tipo=='i')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(I)V \r\n");
@@ -565,6 +638,8 @@ public class CodigoDestino {
 						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
 					if(tipo=='s')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V \r\n");
+					if(tipo=='I'||tipo=='R'||tipo=='N'||tipo=='C'||tipo=='S')
+						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/util/ArrayList;)V \r\n");
 						
 					/*if(c.tipoExpr1=='n'||c.tipoExpr1=='r'||c.tipoExpr1=='i')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
@@ -590,7 +665,7 @@ public class CodigoDestino {
 					lab2="IF"+(label+1);//parte do else
 					label+=2;
 					
-					geraExpr(cif,arqSaida);
+					geraExpr(cif.expr1,arqSaida);
 					arqSaida.write("ifeq "+lab1+"  \r\n");
 					corpo=cif.corpo;
 						processaCorpo(arqSaida);
@@ -616,7 +691,7 @@ public class CodigoDestino {
 					label+=2;
 					
 					arqSaida.write(lab1+":  \r\n");
-					geraExpr(cwhile,arqSaida);
+					geraExpr(cwhile.expr1,arqSaida);
 					arqSaida.write("ifeq "+lab2+"  \r\n");
 						corpo=cwhile.corpo;
 						processaCorpo(arqSaida);

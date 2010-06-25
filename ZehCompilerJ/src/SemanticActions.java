@@ -133,11 +133,11 @@ public class SemanticActions {
 					erro=true;
 				break;
 			case 'R':
-				if(tipo2!='I' && tipo2!='C')
+				if(tipo2!='I' && tipo2!='C' && tipo2!='R')
 					erro=true;
 				break;
 			case 'I':
-				if(tipo2!='R' && tipo2!='C')
+				if(tipo2!='R' && tipo2!='C' && tipo2!='I')
 					erro=true;
 				break;
 		}
