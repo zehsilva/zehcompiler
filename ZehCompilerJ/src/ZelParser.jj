@@ -40,12 +40,14 @@ para a função addElemList e também criar um construtor com a informação de casti
          Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
 	//esta parte serve para ler as mensagens geradas pelo jasmin
          BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+         BufferedReader err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
          String line="";
          
-         while ((line = input.readLine()) != null)
+         while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
          {
            System.out.println(line);
          }
+         err.close();
          input.close();
       }  
       catch(FileNotFoundException e) { 

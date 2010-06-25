@@ -46,6 +46,7 @@ public class CodigoDestino {
                arqSaida.write("return\r\n"); 
                arqSaida.write(".end method\r\n"); 
                arqSaida.close(); 
+              
          } 
          catch(IOException e) { 
                System.out.println("Problemas no arquivo '"+arq+".j'"); 

@@ -1,6 +1,4 @@
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -505,8 +503,6 @@ public class SemanticActions {
 	public static int tamanhoMaxPilha(ArrayDeque<Item> expr, int tamAnt)
 	{
 		int t=0,t2=0;
-		int nant=0;
-		ArrayList<Item> al;
 		
 		//Collections.reverse(al=new ArrayList<Item>(expr));
 		//System.out.println("rev = "+al);
