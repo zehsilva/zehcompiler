@@ -131,6 +131,19 @@ public class CodigoDestino {
 		{
 			arqSaida.write("i2d \r\n");
 		}
+		if(tipo1=='i' && tipoCast=='c')
+		{
+			arqSaida.write("i2c \r\n");
+		}
+		if(tipo1=='c' && tipoCast=='s')
+		{
+			arqSaida.write("new java/lang/StringBuffer \r\n");
+			arqSaida.write("dup \r\n");
+			arqSaida.write("invokespecial java/lang/StringBuffer/<init>()V \r\n");
+			arqSaida.write("swap \r\n");
+			arqSaida.write("invokevirtual java/lang/StringBuffer/append(C)Ljava/lang/StringBuffer; \r\n");
+			arqSaida.write("invokevirtual java/lang/StringBuffer/toString()Ljava/lang/String; \r\n");
+		}
 	}
 	public static void converteTipo(char tipo1,char tipo2, char tipoCast,BufferedWriter arqSaida) throws IOException
 	{
@@ -171,6 +184,18 @@ public class CodigoDestino {
 			arqSaida.write("d2i \r\n");
 			converteTipo('i','r','i',arqSaida);
 		}
+		if(tipo1=='c' && tipo2=='s' && tipoCast=='s')
+		{
+			arqSaida.write(";;convertetipo c s\r\n");
+			converteTipo('c','s',arqSaida);
+			arqSaida.write(";;convertetipo c s\r\n");
+		}
+		if(tipo1=='s' && tipo2=='c' && tipoCast=='s')
+		{
+			arqSaida.write("swap ;;convertetipo s c\r\n");
+			converteTipo('c','s',arqSaida);
+			arqSaida.write("swap ;;convertetipo s c\r\n");
+		}
 	}
 	public static char geraExpr(ArrayDeque<Item> c,BufferedWriter arqSaida) throws IOException
 	{
@@ -200,38 +225,72 @@ public class CodigoDestino {
 					tipoant1='r';
 					break;
 				case 'c':
-					arqSaida.write("ldc "+Character.getNumericValue(x.getValorChar())+" \r\n");
-					arqSaida.write("i2c  \r\n");
+					arqSaida.write("ldc "+((int)x.getValorChar())+" \r\n");
+					//System.out.println("ldc "+Character.getNumericValue(x.getValorChar())+" "+(int)x.getValorChar()+" "+((char)Character.getNumericValue(x.getValorChar())));
+					//arqSaida.write("i2c  \r\n");
 					tipos.offerLast('c');
 					tipoant1='c';
 					break;
 				case 'o':
 					switch(x.oper)
 					{
-						case GTEQ:
-						tipoant1=tipos.pollLast();
-						tipoant2=tipos.pollLast();
-						if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
-						{
-							converteTipo(tipoant1,tipoant2,'r',arqSaida);
-							arqSaida.write("dcmpg \r\n");
-						}
-						else
-						{			
-							if(tipoant1=='i'|| tipoant2=='i')
+						case IN:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
+							if(Character.isUpperCase(tipoant1))
 							{
-								arqSaida.write("isub  \r\n");
+								arqSaida.write(";;teste IN para LinkedList \r\n");
+								if(tipoant2=='i')
+								{
+									arqSaida.write("swap \r\n");
+									arqSaida.write("i2d \r\n");
+									CodigoDestino.geraDoubleO(arqSaida);
+								}
+								if(tipoant2=='r'||tipoant2=='n')
+								{
+									arqSaida.write("dup_x2 \r\n");
+									arqSaida.write("pop \r\n");
+									CodigoDestino.geraDoubleO(arqSaida);
+								}
+								
+								arqSaida.write("invokevirtual java/util/LinkedList/contains(Ljava/lang/Object;)Z \r\n");
 							}
-						}
-						arqSaida.write("ifge LABGE"+label+"  \r\n");
-						arqSaida.write("ldc 0 \r\n");
-						arqSaida.write("goto LABGE"+(label+1)+" \r\n");
-						arqSaida.write("LABGE"+label+": \n\r" );
-						arqSaida.write("ldc 1 \r\n");
-						arqSaida.write("LABGE"+(label+1)+": \n\r");
-						label+=2;
-						tipos.offerLast('i');
-						break;
+							if(tipoant1=='s')
+							{
+								arqSaida.write("swap ;;teste IN para String\r\n");
+								if(tipoant2=='i')
+									arqSaida.write("i2c \r\n");
+								arqSaida.write("invokevirtual java/lang/String/indexOf(I)I \r\n");
+								arqSaida.write("ldc 1 \r\n");
+								arqSaida.write("iadd \r\n");
+								
+							}
+							tipos.offerLast('i');
+							break;
+						case GTEQ:
+							tipoant1=tipos.pollLast();
+							tipoant2=tipos.pollLast();
+							if(tipoant1=='r'|| tipoant2=='r'||tipoant1=='n'|| tipoant2=='n')
+							{
+								converteTipo(tipoant1,tipoant2,'r',arqSaida);
+								arqSaida.write("dcmpg \r\n");
+							}
+							else
+							{			
+								if(tipoant1=='i'|| tipoant2=='i')
+								{
+									arqSaida.write("isub  \r\n");
+								}
+							}
+							arqSaida.write("ifge LABGE"+label+"  \r\n");
+							arqSaida.write("ldc 0 \r\n");
+							arqSaida.write("goto LABGE"+(label+1)+" \r\n");
+							arqSaida.write("LABGE"+label+": \n\r" );
+							arqSaida.write("ldc 1 \r\n");
+							arqSaida.write("LABGE"+(label+1)+": \n\r");
+							label+=2;
+							tipos.offerLast('i');
+							break;
 						case LS:
 							tipoant1=tipos.pollLast();
 							tipoant2=tipos.pollLast();
@@ -448,16 +507,33 @@ public class CodigoDestino {
 						case CONCAT:
 							tipoant1=tipos.pollLast();
 							tipoant2=tipos.pollLast();
-							arqSaida.write("swap \r\n");
-							arqSaida.write("new java/lang/StringBuilder \r\n");
-							arqSaida.write("dup  \r\n");
-							arqSaida.write("invokespecial java/lang/StringBuilder/<init>()V \r\n");
-							arqSaida.write("swap \r\n");
-							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
-							arqSaida.write("swap \r\n");
-							arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
-							arqSaida.write("invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\r\n");
-							tipos.offerLast('s');
+							if(tipoant1=='s' || tipoant2=='s')
+							{
+								if(tipoant1!='s'||tipoant2!='s')
+									converteTipo(tipoant1,tipoant2,'s',arqSaida);
+								arqSaida.write("swap \r\n");
+								arqSaida.write("new java/lang/StringBuilder \r\n");
+								arqSaida.write("dup  \r\n");
+								arqSaida.write("invokespecial java/lang/StringBuilder/<init>()V \r\n");
+								arqSaida.write("swap \r\n");
+								arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
+								arqSaida.write("swap \r\n");
+								arqSaida.write("invokevirtual java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder; \r\n");
+								arqSaida.write("invokevirtual java/lang/StringBuilder/toString()Ljava/lang/String;\r\n");
+								tipos.offerLast('s');
+							}
+							if(Character.isUpperCase(tipoant1) && Character.isUpperCase(tipoant2) )
+							{
+								arqSaida.write("swap ;;concat lista\r\n");
+								arqSaida.write("dup \r\n");
+								arqSaida.write("dup2_x1 \r\n");
+								arqSaida.write("pop2 \r\n");
+								arqSaida.write("checkcast java/util/Collection \r\n");
+								arqSaida.write("invokevirtual java/util/LinkedList/addAll(Ljava/util/Collection;)Z\r\n ");
+								arqSaida.write("pop \r\n");
+								tipos.offerLast(tipoant1);
+							}
+							
 							break;
 						case ARROBA:
 							tipoant1=tipos.pollLast();
@@ -481,11 +557,11 @@ public class CodigoDestino {
 					Simbolo vart=tabela.get(var);
 					String pref="";
 					int ref= vart.getReferencia();
-					if(vart.tipo=='i')
+					if(vart.tipo=='i'||vart.tipo=='c')
 						pref="i";
 					if(vart.tipo=='r'||vart.tipo=='n')
 						pref="d";
-					if(vart.tipo=='s')
+					if(vart.tipo=='s'||vart.tipo=='I'||vart.tipo=='R'||vart.tipo=='N'||vart.tipo=='C'||vart.tipo=='S')
 						pref="a";
 					if(ref<=3)
 						arqSaida.write(pref+"load_"+ref+" \r\n");
@@ -518,6 +594,7 @@ public class CodigoDestino {
 			}
 			tipoant2=tipoant1;
 		}
+		System.out.println("Tipos final: "+tipos);
 		return tipos.pollLast();
 	}
 	public static void geraDoubleO(BufferedWriter arqSaida) throws IOException
@@ -543,28 +620,34 @@ public class CodigoDestino {
 		char tipolst,tipox;
 		String objDescript="";
 		tipolst=Character.toLowerCase(tipo);
-		if(tipo=='R' || tipo=='N')
+		/*if(tipo=='R' || tipo=='N')
 			objDescript="java/lang/Double";
 		if(tipo=='I')
 			objDescript="java/lang/Integer";
 		if(tipo=='C')
 			objDescript="java/lang/Character";
 		if(tipo=='S')
-			objDescript="java/lang/String";
-		
-		arqSaida.write("new java/util/ArrayList  \r\n");
+			objDescript="java/lang/String";*/
+		objDescript="java/lang/Object";
+		arqSaida.write("new java/util/LinkedList  \r\n");
 		arqSaida.write("dup \r\n");
-		arqSaida.write("invokespecial java/util/ArrayList/<init>()V  \r\n");
+		arqSaida.write("invokespecial java/util/LinkedList/<init>()V  \r\n");
 		for(Item x:lst)
 		{
 			arqSaida.write("dup \r\n");
 			tipox=geraExpr(x.valorlst,arqSaida);
 			converteTipo(tipox,tipolst,arqSaida);
-			if(tipox=='r'||tipox=='d')
-				geraDoubleO(arqSaida);
 			if(tipox=='i')
-				geraIntegerO(arqSaida);
-			arqSaida.write("invokespecial java/util/ArrayList/add(L"+objDescript+";)V  \r\n");
+			{
+				arqSaida.write("i2d \r\n");
+				tipox='r';
+			}
+			if(tipox=='r'||tipox=='n')
+				geraDoubleO(arqSaida);
+			//if(tipox=='i')
+				//geraIntegerO(arqSaida);
+			arqSaida.write("invokevirtual java/util/LinkedList/add(L"+objDescript+";)Z  \r\n");
+			arqSaida.write("pop  \r\n");
 		}
 	}
 	
@@ -582,6 +665,13 @@ public class CodigoDestino {
 					break;
 				case 'i':
 					arqSaida.write("invokevirtual java/util/Scanner/nextInt()I  \r\n");
+					pref="i";
+					break;
+				case 'c':
+					arqSaida.write("ldc \".\" ;; pattern \".\" (qualquer caracter) \r\n");//define o pattern de entrade "." (qualquer caracter)
+					arqSaida.write("invokevirtual java/util/Scanner/next(Ljava/lang/String;)Ljava/lang/String;  \r\n");
+					arqSaida.write("ldc 0 \r\n");
+					arqSaida.write("invokevirtual java/lang/String/charAt(I)C  \r\n");
 					pref="i";
 					break;
 				case 's':
@@ -613,11 +703,11 @@ public class CodigoDestino {
 					
 					int ref= vart.getReferencia();
 					tipo=geraExpr(c.expr1,arqSaida);
-					if(vart.tipo=='i')
+					if(vart.tipo=='i'||vart.tipo=='c')
 						pref="i";
 					if(vart.tipo=='r'||vart.tipo=='n')
 						pref="d";
-					if(vart.tipo=='s')
+					if(vart.tipo=='s'||vart.tipo=='I'||vart.tipo=='R'||vart.tipo=='N'||vart.tipo=='C'||vart.tipo=='S')
 						pref="a";
 					if(vart.tipo!=tipo);
 						converteTipo(tipo, vart.tipo, arqSaida);
@@ -639,7 +729,7 @@ public class CodigoDestino {
 					if(tipo=='s')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V \r\n");
 					if(tipo=='I'||tipo=='R'||tipo=='N'||tipo=='C'||tipo=='S')
-						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/util/ArrayList;)V \r\n");
+						arqSaida.write("invokevirtual java/io/PrintStream/println(Ljava/lang/Object;)V \r\n");
 						
 					/*if(c.tipoExpr1=='n'||c.tipoExpr1=='r'||c.tipoExpr1=='i')
 						arqSaida.write("invokevirtual java/io/PrintStream/println(D)V \r\n");
@@ -694,6 +784,23 @@ public class CodigoDestino {
 					geraExpr(cwhile.expr1,arqSaida);
 					arqSaida.write("ifeq "+lab2+"  \r\n");
 						corpo=cwhile.corpo;
+						processaCorpo(arqSaida);
+					arqSaida.write("goto "+lab1+"  \r\n");
+					arqSaida.write(lab2+":  \r\n");
+					
+					corpo=corpoTemp;
+					break;
+				case FOR:
+					ComandoCorpo cfor=(ComandoCorpo)c;
+					corpoTemp=corpo;
+					lab1="FOR"+label;
+					lab2="FOR"+(label+1);//parte do else
+					label+=2;
+					
+					arqSaida.write(lab1+":  \r\n");
+					geraExpr(cfor.expr1,arqSaida);
+					arqSaida.write("ifeq "+lab2+"  \r\n");
+						corpo=cfor.corpo;
 						processaCorpo(arqSaida);
 					arqSaida.write("goto "+lab1+"  \r\n");
 					arqSaida.write(lab2+":  \r\n");

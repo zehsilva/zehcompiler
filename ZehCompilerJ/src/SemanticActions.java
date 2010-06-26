@@ -50,8 +50,8 @@ public class SemanticActions {
 	}
 	public static void verificaInList(char tipo1,char tipo2,Token t) throws SemanticException
 	{
-		if(Character.isLowerCase(tipo2) || (Character.toLowerCase(tipo2)!=tipo1))
-			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t O teste de pertinência só serve para elementos do mesmo tipo");
+		if(Character.isLowerCase(tipo2) && !(tipo2=='s' && tipo1=='c') || Character.isUpperCase(tipo2) && (Character.toLowerCase(tipo2)!=tipo1))
+			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t O teste de pertinência só serve para elementos do mesmo tipo "+tipo1+" "+tipo2+" "+t);
 	}
 	public static void verificaString(char tipo1,Token t) throws SemanticException
 	{
@@ -60,16 +60,16 @@ public class SemanticActions {
 	}
 	public static void verificaString(char tipo1,char tipo2, Token t) throws SemanticException
 	{
-		if((tipo1!='s' && Character.isLowerCase(tipo1))||(tipo2!='s' && Character.isLowerCase(tipo2)))
-			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Este operação só deve ser para String ou Lista");
+		if((tipo1!='s' && tipo1!='c'&& Character.isLowerCase(tipo1))||(tipo2!='s'  && tipo2!='c' && Character.isLowerCase(tipo2)))
+			throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t Este operação só deve ser para String ou Lista "+tipo1+" "+tipo2);
 	}
 	public static void verificaConcat(char tipo1,char tipo2, Token t) throws SemanticException
 	{
 		verificaString(tipo1,tipo2,t);
 		if(tipo1!=tipo2)
 		{
-			if((tipo1!='s'||tipo2!='C') && (tipo1 !='C' || tipo2!='s'))//string e lista de caracteres podem ser concatenadas
-				throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t A operação '.' só pode ser executada usando operandos do mesmo tipo");
+			if((tipo1!='s'||(tipo2!='C'&&tipo2!='c')) && ((tipo1 !='C' && tipo1 !='c') || tipo2!='s'))//string e lista de caracteres podem ser concatenadas
+				throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t A operação '.' só pode ser executada usando operandos do mesmo tipo "+tipo1+" "+tipo2);
 		}
 	}
 	public static void verificaTipoAritmetica(char tipo1,char tipo2,Token t,String oper) throws SemanticException
@@ -192,10 +192,11 @@ public class SemanticActions {
 	public static void addItemLista(ArrayDeque<Item> lst,ArrayDeque<Item> valor,char tipo)
 	{
 		Item it=null;
-		if(valor.size()>1)
+		//if(valor.size()>1)
 			it=new Item(tipo,valor);
-		if(valor.size()==1)
-			it=new Item(tipo,valor.getFirst());
+		//if(valor.size()==1)
+			//it=new Item(tipo,valor.getFirst());
+		System.out.println("it="+it);
 		lst.offerLast(it);
 	}
 	public static Item execOper(Item oper,Item var1, Item var2,char tipoA)

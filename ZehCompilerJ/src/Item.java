@@ -59,6 +59,7 @@ public class Item {
 		tipo=t;
 		valorlst=s;
 		valor=s.toString();
+		//System.out.println("valor="+valor);
 	}
 	public Item(char t,Object o)
 	{
@@ -159,6 +160,8 @@ public class Item {
 	public String toString()
 	{
 		String str="";
+		if(this.valorlst!=null)
+			return this.valor;
 		if(tipo=='i')
 			return ""+this.valorint;
 		if(tipo=='r')

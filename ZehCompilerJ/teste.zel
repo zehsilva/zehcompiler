@@ -1,8 +1,7 @@
-vars: real x;int y
-  y=2
-  read(y)
-  while(y<=5)
-  {
-    print("y = ".$(y));
-    y=y+1
-  }end
+vars: char x,y,z;string l
+  read(x)
+  read(l)
+  print(x in l)
+
+  
+  

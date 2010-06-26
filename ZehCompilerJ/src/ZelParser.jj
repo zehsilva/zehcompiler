@@ -304,11 +304,12 @@ char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1=
   (
     (
       {ArrayDeque<Item> d=new ArrayDeque<Item>();}
-      t=<IN> tipo1=termo_concat(d)
+      t=<IN> tipo1=termo_concat(expr_lst)
       {
         SemanticActions.verificaInList(tipo,tipo1,t);
         tipo='i';
-        SemanticActions.addItemLista(expr_lst,d,tipo1);
+        //SemanticActions.addItemLista(expr_lst,d,tipo1);
+        
         SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.IN);
       }
     )
@@ -406,7 +407,7 @@ char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;
   (
     t=<PNT> tipo1=termo(expr_lst)
     {
-      SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';
+      SemanticActions.verificaConcat(tipo,tipo1,t);
       SemanticActions.addItemLista(expr_lst,".",'o',Item.op.CONCAT);
     }
   )*
@@ -498,7 +499,9 @@ char list_literal_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{Tok
 char list(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo1='_';}
 {
   <ABRERET> tipo=list_elems(expr_lst) <FECHARET>
-  {return tipo;}
+  {
+    //System.out.println("lst "+ tipo);
+    return tipo;}
 }
 char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
 {Token t;char tipo='_',tipo2='_';ArrayDeque<Item> d;}
@@ -511,7 +514,10 @@ char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
     {d=new ArrayDeque<Item>();}
     tipo2=list_elem(d)
     {
+      //System.out.println("d="+d);
+      
       SemanticActions.addItemLista(expr_lst,d,tipo);
+      //System.out.println("expr_lst="+expr_lst);
       SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
   {return Character.toUpperCase(tipo);}
 }
@@ -567,14 +573,24 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 }
 Comando foreach(LinkedList<Comando> coms) throws SemanticException:
 //falta criar o comandoCorpo, e a expressao certa 
-{Token t;char tipo;Comando com=new Comando();
-LinkedList<Comando> comsnovo=new LinkedList<Comando>();
+{ComandoCorpo com;
+Token t;
+char tipo;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
-{  	<FOREACH><ABREPAR> t=<VAR> <IN> tipo=list(lst) <FECHAPAR>
-  	{  	  SemanticActions.addItemLista(lst,t.image,'v');
+{  	<FOREACH><ABREPAR> t=<VAR> <IN>  	  {ArrayDeque<Item> d=new ArrayDeque<Item>();}
+  	  tipo=list(d) <FECHAPAR>
+  	{
+  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	  SemanticActions.addItemLista(lst,d,tipo);
+  	  tipo=SemanticActions.testaVarTipoInicializada(tab,t);
   	  SemanticActions.addItemLista(lst,"in",'o',Item.op.IN);
   	}
-  	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
+  	<INDENT> coms1=corpo() <DEDENT>(<EOL>)?
+  				{
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoCorpo(Comando.comtype.FOR, lst, coms1);
+  }
   	<END>
   		{ return com; 	}
 }
