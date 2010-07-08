@@ -1,7 +1,12 @@
-vars: char x,y,z;string l
-  read(x)
-  read(l)
-  print(x in l)
+vars: char x,y;string l;int i;real z
+  z=2
+  i=1;
+  foreach(x in ['1','2','3','a','b','c']){
+  	read(z)
+  	print(x.$(z))
+  }end
+  
+  !!print("x in ".l.'1'."=".$(x in l.'1'))
 
   
   

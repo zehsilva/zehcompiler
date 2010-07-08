@@ -82,7 +82,7 @@ public class SemanticActions {
 		if(tipo1=='s'||tipo2=='s'||Character.isUpperCase(tipo1)||Character.isUpperCase(tipo2))
 		{
 			verificaConcat(tipo1,tipo2,t);
-			if(!("==".equals(oper)||"!=".equals(oper)))
+			if(!("==".equals(oper)||"!=".equals(oper))||(tipo1=='s'&&tipo2=='c')||(tipo1=='c'&&tipo2=='s'))
 				throw new SemanticException("Erro Semântico na linha: "+t.beginLine+"\n\t A operação "+oper+" não é permitida para este tipo");
 		}
 	}
@@ -196,7 +196,7 @@ public class SemanticActions {
 			it=new Item(tipo,valor);
 		//if(valor.size()==1)
 			//it=new Item(tipo,valor.getFirst());
-		System.out.println("it="+it);
+		//System.out.println("it="+it);
 		lst.offerLast(it);
 	}
 	public static Item execOper(Item oper,Item var1, Item var2,char tipoA)
@@ -251,7 +251,7 @@ public class SemanticActions {
 				}
 			}
 		}
-		System.out.println(var2+""+oper+""+var1+" = "+res);
+		//System.out.println(var2+""+oper+""+var1+" = "+res);
 		return res;
 	}
 	public static int execNot(int v)
@@ -427,7 +427,7 @@ public class SemanticActions {
 			res.valorint=valint;
 		}
 		
-		System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
+		//System.out.println(var2+" "+oper.oper+" "+var1+" = "+res);
 		return res;
 	}
 	public static int otimizaExp(ArrayDeque<Item> lst,char tipoA)
@@ -443,7 +443,7 @@ public class SemanticActions {
 			try{
 				if(it1.isOper())
 				{
-					System.out.println(it1+" "+it1.oper);
+					//System.out.println(it1+" "+it1.oper);
 					it2=stk.pollLast();
 					switch(it1.oper)
 					{
@@ -486,11 +486,12 @@ public class SemanticActions {
 		Comando cmd=new Comando(var,value);
 		cmdlst.add(cmd);
 	}
-	public static void addCmdLoop(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo,Comando.comtype tipo)
+	/*public static void addCmdLoop(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo,Comando.comtype tipo)
 	{
+		if()
 		ComandoCorpo cmd=new ComandoCorpo(tipo,expr,corpo);
 		cmdlst.add(cmd);
-	}
+	}*/
 	public static void addCmdIf(LinkedList<Comando> cmdlst, ArrayDeque<Item> expr, LinkedList<Comando> corpo)
 	{
 		ComandoIF cmd=new ComandoIF(expr,corpo);
@@ -548,7 +549,7 @@ public class SemanticActions {
 		if(t>tamAnt)
 			tamAnt=t;
 		//System.out.print("] ");
-		System.out.println("tamStack= "+tamAnt+"\n");
+		//System.out.println("tamStack= "+tamAnt+"\n");
 		return tamAnt;
 	}
 }

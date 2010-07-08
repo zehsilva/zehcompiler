@@ -5,32 +5,71 @@
 options{  JDK_VERSION = "1.5";
   DEBUG_PARSER =false;  static = true;}PARSER_BEGIN(ZelParser)import java.io.*;
 import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 public class ZelParser{
-/*** TODO ZEL
+/***TODO ZEL
 1. Mudar a questão de várias quebras de linhas ou ";" para ser reconhecido como um token somente
 <EOL: ("\n",";")+> ao invés de ter na gramática e vários LOOKAHEAD(2)
 2. Variáveis não-inicializadas;
 3. Variáveis inicializadas mas não utilizadas;
-4. Otimizador de Expressões
-	- Expressões numéricas;
-	- Expressões com strings;
-	- Expressões com listas;
-5. Estrutura de dados para comandos.
-6. 
+6. Implementar casting de tipos numéricos dentro do item, possivelmente terei que fazer a função
+que compara os tipos para ver se são incompatíveis retornar um tipo para casting, aeh, devo passar
+para a função addElemList e também criar um construtor com a informação de casting
 ******/
+
   public static HashMap<String,Simbolo>tab =new HashMap<String,Simbolo>();
   public static ArrayDeque<Item> lixo=new ArrayDeque<Item>();
   public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
   public static int stackLen=0;
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
-      System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
+      
       try {
         	 fp=new FileInputStream(args[0]);
          analisador = new ZelParser(fp);
          cmdlst=inicio();
-         System.out.println(tab);
-         CodigoDestino cod=new CodigoDestino(args[0],cmdlst,tab );
-         cod.geraCod();
+         //System.out.println(tab);
+         
+         String nclass=args[0].substring(0,args[0].indexOf("."));
+         nclass=Character.toUpperCase(nclass.charAt(0))+nclass.substring(1);
+         CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
+
+        
+         //cod.geraCod();
+
+
+		         System.out.print("ZEL Parser"+"\n Arquivo: "+nclass+"\n");
+         CodigoDestino2 cod2=new CodigoDestino2(nclass ,cmdlst,tab );
+         cod2.geraCod();
+         System.out.println("Executando Assembler (Jasmin)");
+         Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
+	//esta parte serve para ler as mensagens geradas pelo jasmin
+         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+         BufferedReader err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
+         String line="";
+         
+         while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
+         {
+           System.out.println(line);
+         }
+         err.close();
+         input.close();
+
+         
+
+         System.out.println("Gerando Jar");
+         p = Runtime.getRuntime().exec("jar -cvfe "+nclass+".jar "+nclass+" "+nclass+".class ");
+
+         input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+         err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
+         line="";
+         
+         while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
+         {
+           System.out.println(line);
+         }
+         err.close();
+         input.close();
       }  
       catch(FileNotFoundException e) { 
          System.out.println("Erro: arquivo não encontrado "+args[0]);
@@ -63,7 +102,7 @@ SKIP : {
      "!!" : comentario1
 } 
 <comentario1> SKIP: {
-"\n" |
+"\n":DEFAULT |
    <~[]> 
 }
 SKIP : {
@@ -71,7 +110,7 @@ SKIP : {
   	}
 
 <comentario2> SKIP: { 
-   "#!"| 
+   "#!": DEFAULT| 
    <~[]> 
 }
 TOKEN : {
@@ -190,9 +229,21 @@ void eoc():{}
 }
 
 void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comando> coms1 = new LinkedList<Comando>();Comando com=new Comando();}
-{  (    (com=ifcmd(coms1) | whilecmd(coms1) | foreach(coms1) | atrib(coms) | entrada(coms1) | saida(coms1))? eoc() )*
-  {    coms.add(com);
-  }
+{  (    (
+      {com=null;}
+      (
+        com=ifcmd(){coms.add(com);}
+        |com=whilecmd(){coms.add(com);}
+        |com=foreach(){coms.add(com);}
+        |com=atrib(coms)
+        |com=entrada(){coms.add(com);}
+        |com=saida(){coms.add(com);}
+	       )
+    )? eoc()
+      
+      
+    )*
+  	  
 }
 
 //--------------------------------Atribuição e Expressões------------------------------------
@@ -235,9 +286,9 @@ LinkedList<Comando> atribs=new LinkedList<Comando>();}
 
 char expr(char tipoAtrib,ArrayDeque<Item> lst) throws SemanticException :{char tipo;}{  tipo=expr_aux(lst)
   {
-    System.out.println("SemOptmi = "+lst);
+    //System.out.println("SemOptmi = "+lst);
     SemanticActions.otimizaExp(lst,tipoAtrib);
-    System.out.println("lstfinal = "+lst);
+    //System.out.println("lstfinal = "+lst);
     stackLen=SemanticActions.tamanhoMaxPilha(lst,stackLen);
     
     //System.out.println(lst);
@@ -274,11 +325,12 @@ char expr_bool(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo1=
   (
     (
       {ArrayDeque<Item> d=new ArrayDeque<Item>();}
-      t=<IN> tipo1=termo_concat(d)
+      t=<IN> tipo1=termo_concat(expr_lst)
       {
         SemanticActions.verificaInList(tipo,tipo1,t);
         tipo='i';
-        SemanticActions.addItemLista(expr_lst,d,tipo1);
+        //SemanticActions.addItemLista(expr_lst,d,tipo1);
+        
         SemanticActions.addItemLista(expr_lst,t.image,'o',Item.op.IN);
       }
     )
@@ -376,22 +428,36 @@ char termo_concat(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;
   (
     t=<PNT> tipo1=termo(expr_lst)
     {
-      SemanticActions.verificaConcat(tipo,tipo1,t);tipo='s';
+      SemanticActions.verificaConcat(tipo,tipo1,t);
       SemanticActions.addItemLista(expr_lst,".",'o',Item.op.CONCAT);
     }
   )*
   {return tipo;}
 }
 
-char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo2='_';}
+char termo(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;boolean minus=false;char tipo='_',tipo2='_';}
 {
   (
-    (<PLUS>|<MINUS>)?
+    (<MINUS>{minus=true;}|<PLUS>)?
     (
       t=<VAR>
-      {tipo=SemanticActions.testaVarTipoInicializada(tab,t);
-      SemanticActions.addItemLista(expr_lst,t.image,'v');}
-      |tipo=simple_literal(expr_lst)
+      {
+        tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+        if(minus)
+        		  SemanticActions.addItemLista(expr_lst,"0",'r');
+        SemanticActions.addItemLista(expr_lst,t.image,'v');
+        if(minus)
+          SemanticActions.addItemLista(expr_lst,"-",'o',Item.op.SUB);
+      }
+      |
+      {        if(minus)
+          SemanticActions.addItemLista(expr_lst,"0",'r');
+      }
+      tipo=simple_literal(expr_lst)
+      {        if(minus)
+          SemanticActions.addItemLista(expr_lst,"-",'o',Item.op.SUB);
+      }
+      
       |<ARROBA><ABREPAR> expr_aux(expr_lst) <FECHAPAR>
       {tipo='r';SemanticActions.addItemLista(expr_lst,"@",'o',Item.op.ARROBA);}
       |<ABREPAR> tipo=expr_aux(expr_lst) <FECHAPAR>
@@ -454,7 +520,9 @@ char list_literal_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{Tok
 char list(ArrayDeque<Item> expr_lst) throws SemanticException :{Token t;char tipo='_',tipo1='_';}
 {
   <ABRERET> tipo=list_elems(expr_lst) <FECHARET>
-  {return tipo;}
+  {
+    //System.out.println("lst "+ tipo);
+    return tipo;}
 }
 char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
 {Token t;char tipo='_',tipo2='_';ArrayDeque<Item> d;}
@@ -467,14 +535,17 @@ char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
     {d=new ArrayDeque<Item>();}
     tipo2=list_elem(d)
     {
+      //System.out.println("d="+d);
+      
       SemanticActions.addItemLista(expr_lst,d,tipo);
+      //System.out.println("expr_lst="+expr_lst);
       SemanticActions.verificaTipoLista(tipo,tipo2,t);})*
   {return Character.toUpperCase(tipo);}
 }
 char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
 {
   tipo=expr_aux(expr_lst)
-  {    System.out.println(expr_lst);
+  {    //System.out.println(expr_lst);
   }
   (
     t=<TO>
@@ -485,7 +556,7 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
   {return tipo;}
 }
 //------------------------------if,while e foreach---------------------------------------------
-Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
+Comando ifcmd() throws SemanticException :
 //cria um comandoIF e retorna para quem o chamdou
 {ComandoIF com;
 char tipo;
@@ -506,48 +577,92 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
   	<FI>
   	{ return com; 	}
 }
-Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
+Comando whilecmd() throws SemanticException :
 //falta criar o ComandoCorpe e retornar ele
-{Comando com=new Comando();
+{ComandoCorpo com;
+char tipo;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
-{  	<WHILE><ABREPAR>expr('_',lst)<FECHAPAR><EOL>
-  			<INDENT>corpo()<DEDENT>(<EOL>)?
+{  	<WHILE><ABREPAR>tipo=expr('_',lst)<FECHAPAR><EOL>
+  			<INDENT>coms1=corpo()<DEDENT>(<EOL>)?
+  			{
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoCorpo(lst, coms1);
+  }
   			<END>
   				{ return com; 	}
 }
-Comando foreach(LinkedList<Comando> coms) throws SemanticException:
+Comando foreach() throws SemanticException:
 //falta criar o comandoCorpo, e a expressao certa 
-{Token t;char tipo;Comando com=new Comando();
-LinkedList<Comando> comsnovo=new LinkedList<Comando>();
+{ComandoCorpo com;
+Token t;
+char tipo;
+String varfor;
+LinkedList<Comando> coms1=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
-{  	<FOREACH><ABREPAR> t=<VAR> <IN> tipo=list(lst) <FECHAPAR>
-  	{  	  SemanticActions.addItemLista(lst,t.image,'v');
-  	  SemanticActions.addItemLista(lst,t.image,'v');
+{  	<FOREACH><ABREPAR> t=<VAR> <IN>  	  {ArrayDeque<Item> d=new ArrayDeque<Item>();}
+  	  tipo=list(d) <FECHAPAR>
+  	{
+  	  varfor=t.image;
+  	  //SemanticActions.addItemLista(lst,t.image,'v');
+  	  SemanticActions.addItemLista(lst,d,tipo);
+  	  SemanticActions.testaVar(tab,t);
+  	  //tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+  	  //SemanticActions.addItemLista(lst,"in",'o',Item.op.IN);
   	}
-  	<INDENT> comsnovo=corpo() <DEDENT>(<EOL>)?
+  	<INDENT> coms1=corpo() <DEDENT>(<EOL>)?
+  				{
+    SemanticActions.otimizaExp(lst,tipo);
+    com=new ComandoCorpo(lst,varfor, coms1);
+  }
   	<END>
   		{ return com; 	}
 }
 
 //----------------------------------Entrada e Saida------------------------------------------
-Comando entrada(LinkedList<Comando> coms) throws SemanticException :
-{Comando com=new Comando();}
+Comando entrada() throws SemanticException :
+{ComandoEntrada com=null;
+Token t;
+String janela="ZEL Program";
+ArrayDeque<String> listaVar=new ArrayDeque<String>();}
 {  	<READ>
   	<ABREPAR>
-  					(<STRING><VIRG>)?(<VAR><VIRG>)+
+  					(
+  					  t=<STRING>
+  					  {
+  					    janela=t.image;  					  }
+  					)?
+  										t=<VAR>
+  										{
+  										  SemanticActions.testaVar(tab,t);
+  										  listaVar.offerLast(t.image);}
+  					(
+  					  <VIRG>t=<VAR>
+  					  {
+  					    SemanticActions.testaVar(tab,t);
+  					    listaVar.offerLast(t.image);
+  					  }					
+  					)*
+  
   	<FECHAPAR>
-  		{ return com; 	}
+  	
+  		{
+  		  com=new ComandoEntrada(janela,listaVar);
+  		  return com; 	}
 }
-Comando saida(LinkedList<Comando> coms) throws SemanticException :
-{Comando com=new Comando();
-ArrayDeque<Item> lst=new ArrayDeque<Item>();}
+Comando saida() throws SemanticException :
+{ComandoSaida com;
+ArrayDeque<Item> lst=new ArrayDeque<Item>();
+char tipo;}
 {  		<PRINT>
   		<ABREPAR>
-  		expr('_',lst)
+  tipo=		expr('_',lst)
   		(
   		  {lst=new ArrayDeque<Item>();}
-  		  <VIRG> expr('_',lst)
+  		  <VIRG> tipo=expr('_',lst)
   		)?
   						<FECHAPAR>
-  			{ return com; 	}
+  			{
+  			  com=new ComandoSaida(lst,tipo);
+  			  return com; 	}
 }

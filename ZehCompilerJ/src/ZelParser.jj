@@ -23,25 +23,46 @@ para a função addElemList e também criar um construtor com a informação de casti
   public static LinkedList<Comando> cmdlst=new LinkedList<Comando>();
   public static int stackLen=0;
   public static FileInputStream fp;  public static void main(String args []) throws ParseException  {      ZelParser analisador = null;
-      System.out.print("ZEL Parser"+"\n Arquivo: "+args[0]+"\n");
+      
       try {
         	 fp=new FileInputStream(args[0]);
          analisador = new ZelParser(fp);
          cmdlst=inicio();
-         System.out.println(tab);
+         //System.out.println(tab);
          
          String nclass=args[0].substring(0,args[0].indexOf("."));
          nclass=Character.toUpperCase(nclass.charAt(0))+nclass.substring(1);
          CodigoDestino cod=new CodigoDestino(nclass ,cmdlst,tab );
-         System.out.println(cmdlst);
-         cod.geraCod();
-         //System.out.println("Codigo Gerado");
+
+        
+         //cod.geraCod();
+
+
+		         System.out.print("ZEL Parser"+"\n Arquivo: "+nclass+"\n");
+         CodigoDestino2 cod2=new CodigoDestino2(nclass ,cmdlst,tab );
+         cod2.geraCod();
          System.out.println("Executando Assembler (Jasmin)");
          Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
 	//esta parte serve para ler as mensagens geradas pelo jasmin
          BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
          BufferedReader err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
          String line="";
+         
+         while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
+         {
+           System.out.println(line);
+         }
+         err.close();
+         input.close();
+
+         
+
+         System.out.println("Gerando Jar");
+         p = Runtime.getRuntime().exec("jar -cvfe "+nclass+".jar "+nclass+" "+nclass+".class ");
+
+         input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+         err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
+         line="";
          
          while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
          {
@@ -81,7 +102,7 @@ SKIP : {
      "!!" : comentario1
 } 
 <comentario1> SKIP: {
-"\n" |
+"\n":DEFAULT |
    <~[]> 
 }
 SKIP : {
@@ -89,7 +110,7 @@ SKIP : {
   	}
 
 <comentario2> SKIP: { 
-   "#!"| 
+   "#!": DEFAULT| 
    <~[]> 
 }
 TOKEN : {
@@ -211,12 +232,12 @@ void cmds(LinkedList<Comando> coms) throws SemanticException :{LinkedList<Comand
 {  (    (
       {com=null;}
       (
-        com=ifcmd(coms1){coms.add(com);}
-        |com=whilecmd(coms1){coms.add(com);}
-        |com=foreach(coms1)
+        com=ifcmd(){coms.add(com);}
+        |com=whilecmd(){coms.add(com);}
+        |com=foreach(){coms.add(com);}
         |com=atrib(coms)
-        |com=entrada(coms1){coms.add(com);}
-        |com=saida(coms1){coms.add(com);}
+        |com=entrada(){coms.add(com);}
+        |com=saida(){coms.add(com);}
 	       )
     )? eoc()
       
@@ -265,9 +286,9 @@ LinkedList<Comando> atribs=new LinkedList<Comando>();}
 
 char expr(char tipoAtrib,ArrayDeque<Item> lst) throws SemanticException :{char tipo;}{  tipo=expr_aux(lst)
   {
-    System.out.println("SemOptmi = "+lst);
+    //System.out.println("SemOptmi = "+lst);
     SemanticActions.otimizaExp(lst,tipoAtrib);
-    System.out.println("lstfinal = "+lst);
+    //System.out.println("lstfinal = "+lst);
     stackLen=SemanticActions.tamanhoMaxPilha(lst,stackLen);
     
     //System.out.println(lst);
@@ -524,7 +545,7 @@ char list_elems(ArrayDeque<Item> expr_lst) throws SemanticException:
 char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='_',tipo1='_',tipo2='_';Token t;}
 {
   tipo=expr_aux(expr_lst)
-  {    System.out.println(expr_lst);
+  {    //System.out.println(expr_lst);
   }
   (
     t=<TO>
@@ -535,7 +556,7 @@ char list_elem(ArrayDeque<Item> expr_lst) throws SemanticException :{char tipo='
   {return tipo;}
 }
 //------------------------------if,while e foreach---------------------------------------------
-Comando ifcmd(LinkedList<Comando> coms) throws SemanticException :
+Comando ifcmd() throws SemanticException :
 //cria um comandoIF e retorna para quem o chamdou
 {ComandoIF com;
 char tipo;
@@ -556,7 +577,7 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
   	<FI>
   	{ return com; 	}
 }
-Comando whilecmd(LinkedList<Comando> coms) throws SemanticException :
+Comando whilecmd() throws SemanticException :
 //falta criar o ComandoCorpe e retornar ele
 {ComandoCorpo com;
 char tipo;
@@ -566,37 +587,40 @@ ArrayDeque<Item> lst=new ArrayDeque<Item>();}
   			<INDENT>coms1=corpo()<DEDENT>(<EOL>)?
   			{
     SemanticActions.otimizaExp(lst,tipo);
-    com=new ComandoCorpo(Comando.comtype.WHILE, lst, coms1);
+    com=new ComandoCorpo(lst, coms1);
   }
   			<END>
   				{ return com; 	}
 }
-Comando foreach(LinkedList<Comando> coms) throws SemanticException:
+Comando foreach() throws SemanticException:
 //falta criar o comandoCorpo, e a expressao certa 
 {ComandoCorpo com;
 Token t;
 char tipo;
+String varfor;
 LinkedList<Comando> coms1=new LinkedList<Comando>();
 ArrayDeque<Item> lst=new ArrayDeque<Item>();}
 {  	<FOREACH><ABREPAR> t=<VAR> <IN>  	  {ArrayDeque<Item> d=new ArrayDeque<Item>();}
   	  tipo=list(d) <FECHAPAR>
   	{
-  	  SemanticActions.addItemLista(lst,t.image,'v');
+  	  varfor=t.image;
+  	  //SemanticActions.addItemLista(lst,t.image,'v');
   	  SemanticActions.addItemLista(lst,d,tipo);
-  	  tipo=SemanticActions.testaVarTipoInicializada(tab,t);
-  	  SemanticActions.addItemLista(lst,"in",'o',Item.op.IN);
+  	  SemanticActions.testaVar(tab,t);
+  	  //tipo=SemanticActions.testaVarTipoInicializada(tab,t);
+  	  //SemanticActions.addItemLista(lst,"in",'o',Item.op.IN);
   	}
   	<INDENT> coms1=corpo() <DEDENT>(<EOL>)?
   				{
     SemanticActions.otimizaExp(lst,tipo);
-    com=new ComandoCorpo(Comando.comtype.FOR, lst, coms1);
+    com=new ComandoCorpo(lst,varfor, coms1);
   }
   	<END>
   		{ return com; 	}
 }
 
 //----------------------------------Entrada e Saida------------------------------------------
-Comando entrada(LinkedList<Comando> coms) throws SemanticException :
+Comando entrada() throws SemanticException :
 {ComandoEntrada com=null;
 Token t;
 String janela="ZEL Program";
@@ -626,7 +650,7 @@ ArrayDeque<String> listaVar=new ArrayDeque<String>();}
   		  com=new ComandoEntrada(janela,listaVar);
   		  return com; 	}
 }
-Comando saida(LinkedList<Comando> coms) throws SemanticException :
+Comando saida() throws SemanticException :
 {ComandoSaida com;
 ArrayDeque<Item> lst=new ArrayDeque<Item>();
 char tipo;}

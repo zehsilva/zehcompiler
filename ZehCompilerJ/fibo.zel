@@ -1,0 +1,14 @@
+vars: int n2,n,a,b,fib;
+read(n)
+n2=n
+fib=1;
+b=1;
+a=1;
+while(n2>1)
+{
+	a=fib
+	fib=fib+b;
+	b=a;
+	n2=n2-1;
+}end
+print("Fib(".$(n).")=".$(fib))
