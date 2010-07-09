@@ -1,0 +1,34 @@
+vars: int x,a,b;real z
+b=1
+read(z)
+print(z)
+foreach(a in [0,1]){
+	foreach(b in [0,1]){
+		print($(a)." xor ".$(b)." = ".$(a xor b))
+	}end
+}end
+print("");
+foreach(a in [0,1]){
+	foreach(b in [0,1]){
+		print($(a)." or ".$(b)." = ".$(a or b))
+	}end
+}end
+print("");
+foreach(a in [0,1]){
+	foreach(b in [0,1]){
+		print($(a)." and ".$(b)." = ".$(a and b))
+	}end
+}end
+print("");
+foreach(a in [0,1]){
+	foreach(b in [0,1]){
+		print($(a)." nand ".$(b)." = ".$(a nand b))
+	}end
+}end
+print("");
+foreach(a in [0,1]){
+	foreach(b in [0,1]){
+		print($(a)." nor ".$(b)." = ".$(a nor b))
+	}end
+}end
+print("");

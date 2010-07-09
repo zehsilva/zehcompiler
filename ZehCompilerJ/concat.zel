@@ -1,0 +1,5 @@
+vars: string str;
+
+str="23";
+
+print("O valor de str=".str);
