@@ -28,7 +28,7 @@ public class Item {
 				valor=s.substring(1, s.length()-1);
 			}
 			stringToList(valor);
-			System.out.println("str = "+valor+"; list item: "+this.valorlst);
+			//System.out.println("str = "+valor+"; list item: "+this.valorlst);
 		}
 	}
 	public Item(char t,String s,op oper)
