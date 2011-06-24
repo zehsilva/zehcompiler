@@ -5,7 +5,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
+//codigo destino para rodar na internet
 public class CodigoDestino2 {
 	public static LinkedList<Comando> corpo;
 	public static HashMap<String,Simbolo>tabela;
