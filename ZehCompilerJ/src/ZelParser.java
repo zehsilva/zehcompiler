@@ -39,36 +39,40 @@ para a função addElemList e também criar um construtor com a informação de casti
 
                          System.out.print("ZEL Parser"+"\u005cn Arquivo: "+nclass+"\u005cn");
          CodigoDestino2 cod2=new CodigoDestino2(nclass ,cmdlst,tab );
-         cod2.geraCod();
+         cod.geraCod();
          System.out.println("Executando Assembler (Jasmin)");
-         Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
-        //esta parte serve para ler as mensagens geradas pelo jasmin
+         jasmin.Main obj=new jasmin.Main();
+         String[] str={""+nclass+".j"};
+         obj.main(str);
+
+         /* Process p = Runtime.getRuntime().exec("java -jar jasmin.jar  "+nclass+".j");
+	//esta parte serve para ler as mensagens geradas pelo jasmin
          BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
          BufferedReader err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
          String line="";
-
+         
          while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
          {
            System.out.println(line);
          }
          err.close();
-         input.close();
+         input.close(); */
 
 
-
+                        /*
          System.out.println("Gerando Jar");
          p = Runtime.getRuntime().exec("jar -cvfe "+nclass+".jar "+nclass+" "+nclass+".class ");
 
          input = new BufferedReader(new InputStreamReader(p.getInputStream()));
          err=new BufferedReader(new InputStreamReader(p.getErrorStream()));
          line="";
-
+         
          while ((line = input.readLine()) != null || (line = err.readLine()) !=null )
          {
            System.out.println(line);
          }
          err.close();
-         input.close();
+         input.close();*/
       }
       catch(FileNotFoundException e) {
          System.out.println("Erro: arquivo n\u00e3o encontrado "+args[0]);
