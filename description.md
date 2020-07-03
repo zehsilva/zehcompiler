@@ -1,3 +1,29 @@
+**General Evaluation
+
+ - Legibilidade: o fato da estrutura de bloco ser definida pela tabulação ajuda na manutenção de um código bem
+    legível e identado. O fato de não termos expressões booleanas explicitas, pode permitir expressões cujo valor resultante
+    não é fácil de perceber ao ler.
+    - Redigibilidade: sem grandes problemas.
+    - Confiabilidade: aritmética com suporte a reais e inteiros, converter inteiros em reais.
+    - Facilidade de aprendizado: a sintaxe é bem parecida com diversas linguagens conhecidas, o que pode facilitar o aprendizado
+    - Eficiência: algumas estruturas da linguagem podem afetar a eficiência, como por exemplo as listas, e teste in de pertinência em lista e string
+    - Ortogonalidade:
+    - Reusabilidade: não existe.
+    - Modificabilidade: não tem recursos que facilitam muito a modificabilidade.
+    - Portabilidade: pode ser executada em qq plataforma que tenha uma máquina virtual java.
+    - Método de implementação: compilada (híbrida  - JVM).
+    - Paradigma: estruturado.
+    - Amarrações: ....
+    - Sistema de Tipos: tipos primitivos: int, real, char e Tipos Compostos: string, list
+    - Verificação de tipos: em tempo de compilação e alguns testes em tempo de execução.
+    - Variáveis: globais, locais
+    - Escopo: estático.
+    - Expressões:
+    - Comandos: =,if,else,foreach,read, print, while
+
+----
+
+**Language Elements
 - Comentário de término de linha:
 !! este eh um comentario
 - Comentário de várias linhas:!#   comment #!
