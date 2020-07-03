@@ -4,10 +4,11 @@ A linguagem tenta combinar algumas características que eu achei interessantes d
 
 A proposta da disciplina é que o código-objeto gerado pelo nosso compilador rode em uma máquina virtual Java (JVM), bem como na web - uma proposta deveras interessante.
 
+Descricao dos componentes: [https://github.com/zehsilva/zehcompiler/blob/master/description.md]
 
 ----
 
-Examples:
+Exemplos:
 ```
 vars: real n2,n,a,b,fib;
 read(n)
