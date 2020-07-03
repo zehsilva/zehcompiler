@@ -1,5 +1,8 @@
 # zehcompiler
 
+Toy language and compiler developed during Compiler course in Comp. Engineering B.Sc. degree at Federal University of Espirito Santo.
+
+----
 A linguagem tenta combinar algumas características que eu achei interessantes de outras linguagens que eu já programei. Inicialmente não projetei uma linguagem com muitas funcionalidades - ela atende a um conjunto mínimo de características pré-determinadas pelo professor - mas espero poder complementá-la mesmo depois do final do semestre.
 
 A proposta da disciplina é que o código-objeto gerado pelo nosso compilador rode em uma máquina virtual Java (JVM), bem como na web - uma proposta deveras interessante.
